@@ -11,5 +11,4 @@ router.get("/api/preguntas/gettotalesdep", cuestionarios_1.gettotalesdep);
 router.get("/api/preguntas/getcuestionariosus", cuestionarios_1.getcuestionariosus);
 router.post("/api/preguntas/getExcelFaltantes", cuestionarios_1.getExcelFaltantes);
 router.get("/api/preguntas/getExcel", cuestionarios_1.getExcel);
-
 exports.default = router;
