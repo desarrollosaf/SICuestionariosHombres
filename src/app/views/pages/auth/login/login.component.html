@@ -1,0 +1,38 @@
+<div class="container-fluid auth-background">
+  <div class="row w-100 mx-0 auth-page">
+    <div class="col-md-6 col-lg-5 col-xl-4 mx-auto">
+      <div class="card">
+        <div class="row">
+          <!--<div class="col-md-4 pe-md-0">
+            <div class="auth-side-wrapper" [ngStyle]="{ 'background-image': 'url(https://placehold.co/250x650)' }">
+  
+            </div>
+          </div>-->
+            <div class="auth-form-wrapper px-4 py-5">
+              <a routerLink="." class="nobleui-logo d-block mb-2"><span></span></a>
+              <h6 class="fw-bold mb-4 text-center" style="color: #96134b; font-size: 1.2rem;">
+                Iniciar sesión
+              </h6>
+              <form  #f="ngForm" (ngSubmit)="onLoggedin(f)"  class="forms-sample">
+                <div class="mb-3">
+                  <label for="exampleInputEmail1" class="form-label">Usuario: </label>
+                  
+                  <input class="form-control"  placeholder="XAXXA01010"  id="Urfc" name="Urfc" placeholder="Usuario" ngModel required />
+                </div>
+                <div class="mb-3">
+                  <label for="exampleInputPassword1" class="form-label">Contraseña: </label>
+                  <input class="form-control" type="password" placeholder="******"  id="Upassword" name="Upassword" placeholder="Contraseña" ngModel required />
+                </div>
+              
+                <div>
+                  <button type="submit" class="btn btn-primary me-2 mb-2 mb-md-0" >Ingresar</button>
+                </div>
+                <!--<a routerLink="/auth/restaurar-contrasena" class="d-block mt-3 text-secondary">¿Olvidaste tu contraseña? <strong>Restablécela aquí</strong></a>-->
+              </form>
+            </div>
+         
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

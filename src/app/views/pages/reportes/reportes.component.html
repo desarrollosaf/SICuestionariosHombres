@@ -1,0 +1,163 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<div class="row">
+    <div class="col-12 col-xl-12 stretch-card">
+        <div class="row flex-grow-1">
+            <div class="row">
+                <div class="col-md-4 mx-auto grid-margin stretch-card">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title mb-4">Total de personas que contestaron</h5>
+                            <div class="row">
+                                <div class="col-6">
+                                    <p class="mb-1">Hombres</p>
+                                    <h6>{{tHombres}}</h6>
+                                </div>
+                                <div class="col-6">
+                                    <p class="mb-1">Mujeres</p>
+                                    <h6>{{tMujeres}}</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 grid-margin stretch-card">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title mb-4">titulo</h5>
+                            <hr class="d-md-none my-4">
+                            <div class="row fw-semibold text-center mb-2">
+                                <div class="col-5 text-start">Dependencia</div>
+                                <div class="col">Hombre</div>
+                                <div class="col">Mujer</div>
+                            </div>
+                            <div class="row text-center mb-2" *ngFor="let dep of primerasDependencias">
+                                <div class="col-5 text-start">{{ dep.dependencia }}</div>
+                                <div class="col">{{ dep.hombres }}</div>
+                                <div class="col">{{ dep.mujeres }}</div>
+                                <hr class="my-2">
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <div class="col-md-6 grid-margin stretch-card">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title mb-4">titulo</h5>
+                            <div class="row fw-semibold text-center mb-2">
+                                <div class="col-5 text-start">Dependencia</div>
+                                <div class="col">Hombre</div>
+                                <div class="col">Mujer</div>
+                            </div>
+                            <div class="row text-center mb-2" *ngFor="let dep of segundasDependencias">
+                                <div class="col-5 text-start">{{ dep.dependencia }}</div>
+                                <div class="col">{{ dep.hombres }}</div>
+                                <div class="col">{{ dep.mujeres }}</div>
+                                <hr class="my-2">
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12 stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <!-- <h6 class="card-title text-center">
+                    OLITASDEMAR
+                </h6> -->
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="mb-3">
+                                <div class="form-group">
+                                    <label class="form-label">Dependencia:</label>
+                                    <ng-select [items]="dependencia" [searchable]="false" bindLabel="nombre_completo"
+                                        bindValue="id_Dependencia" [(ngModel)]="selectedDependencia"
+                                        placeholder="--Selecciona--">
+                                    </ng-select>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="col-sm-6">
+                            <div class="mb-3">
+                                <div class="form-group">
+                                    <label class="form-label">Género:</label>
+                                    <ng-select [items]="generoSlct" [searchable]="false" bindLabel="name" bindValue="id"
+                                        [(ngModel)]="selectedGenero" placeholder="--Selecciona--">
+                                    </ng-select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <button class="btn btn-primary me-2" (click)="getResultados()">
+                            <i class="bi bi-search"></i> Buscar
+                        </button>
+                    </div>
+                    <br>
+                    <div class="text-center">
+                        
+
+                        <button class="btn btn-primary" (click)="getExcelF()">
+                            <i class="bi bi-cloud-download"></i> Descargar Excel
+                        </button>   
+                    </div>
+
+
+                    <br>
+                    <div *ngIf="accordionOpen" class="row">
+                        <div *ngIf="data?.length; else loading" ngbAccordion [closeOthers]="true">
+                            <div *ngFor="let seccion of data" ngbAccordionItem [collapsed]="false">
+                                <h2 ngbAccordionHeader>
+                                    <button ngbAccordionButton>
+                                        <b>{{ seccion?.nombreSeccion }}</b>
+                                    </button>
+                                </h2>
+                                <div ngbAccordionCollapse>
+                                    <div ngbAccordionBody>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-4" *ngFor="let pregunta of seccion.preguntas">
+                                                <h6 *ngIf="pregunta?.nombrePregunta">{{ pregunta.nombrePregunta }}</h6>
+                                                <canvas *ngIf="pregunta?.opciones?.length" baseChart
+                                                    [data]="getChartData(pregunta)" [type]="'bar'"
+                                                    [options]="chartOptions"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <ng-template #loading>
+                            <div class="row justify-content-center">
+                                <div class="col-md-8 col-lg-6">
+                                    <div class=" text-center">
+                                        <div class="py-2">
+                                            <div class="mb-1">
+                                                <i class="bi bi-emoji-frown text-primary" style="font-size: 3rem;"></i>
+                                            </div>
+                                            <h6 class="text-primary">No hay resultados para mostrar.</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </ng-template>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

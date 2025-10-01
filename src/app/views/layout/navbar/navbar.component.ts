@@ -1,0 +1,194 @@
+import { Component, HostListener, Inject, OnInit } from '@angular/core';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
+import { ThemeModeService } from '../../../core/services/theme-mode.service';
+import { DOCUMENT, NgClass, NgFor, NgIf } from '@angular/common';
+
+import { MENU } from './menu';
+import { MenuItem } from './menu.model';
+import { SubMenus } from './menu.model';
+import { SubMenuItems } from './menu.model';
+import { FeatherIconDirective } from '../../../core/feather-icon/feather-icon.directive';
+import { UserService } from '../../../core/services/user.service';
+
+@Component({
+    selector: 'app-navbar',
+    imports: [
+        NgbDropdownModule,
+        FeatherIconDirective,
+        RouterLink,
+        RouterLinkActive,
+        NgFor,
+        NgIf,
+        NgClass
+    ],
+    templateUrl: './navbar.component.html',
+    styleUrl: './navbar.component.scss'
+})
+export class NavbarComponent implements OnInit {
+
+  currentTheme: string;
+  menuItems: MenuItem[] = []
+  sub: SubMenus[] = [];
+  subItem: SubMenuItems[] = [];
+
+  currentlyOpenedNavItem: HTMLElement | undefined;
+
+  constructor(
+    private router: Router,
+    private themeModeService: ThemeModeService,
+    private _userService: UserService
+  ) {}
+
+  ngOnInit(): void {
+    this.themeModeService.currentTheme.subscribe( (theme) => {
+      this.currentTheme = theme;
+      this.showActiveTheme(this.currentTheme);
+    });
+
+    const rfc = this._userService.currentUserValue?.rfc ?? '';
+    const role = rfc.startsWith('GEN25') ? 'GEN25' : 'usuario';
+
+    this.menuItems = MENU;
+    if (role) {
+      this.menuItems = this.filterMenuByRole(MENU, role);
+    } else {
+      this.menuItems = []; 
+    }
+
+    /**
+     * Close the header menu after a route change on tablet and mobile devices
+     */
+    // if (window.matchMedia('(max-width: 991px)').matches) {
+      this.router.events.forEach((event) => {
+        if (event instanceof NavigationEnd) {
+          document.querySelector('.horizontal-menu .bottom-navbar')?.classList.remove('header-toggled');
+          document.querySelector('[data-toggle="horizontal-menu-toggle"]')?.classList.remove('open');
+          document.body.classList.remove('header-open');
+        }
+      });
+    // }
+  }
+
+  private filterMenuByRole(menu: MenuItem[], role: string): MenuItem[] {
+    return menu
+      .filter(item => {
+        return !item.roles || item.roles.includes(role);
+      })
+      .map(item => ({
+        ...item,
+        subMenus: item.subMenus?.map(sub => ({
+          ...sub,
+          subMenuItems: (sub.subMenuItems ?? []).filter(subItem =>
+            !subItem.roles || subItem.roles.includes(role)
+          )
+        }))
+    }));
+  }
+
+  showActiveTheme(theme: string) {
+    const themeSwitcher = document.querySelector('#theme-switcher') as HTMLInputElement;
+    const box = document.querySelector('.box') as HTMLElement;
+
+    if (!themeSwitcher) {
+      return;
+    }
+
+    // Toggle the custom checkbox based on the theme
+    if (theme === 'dark') {
+      themeSwitcher.checked = true;
+      box.classList.remove('light');
+      box.classList.add('dark');
+    } else if (theme === 'light') {
+      themeSwitcher.checked = false;
+      box.classList.remove('dark');
+      box.classList.add('light');
+    }
+  }
+
+  /**
+   * Change the theme on #theme-switcher checkbox changes
+   */
+  onThemeCheckboxChange(e: Event) {
+    const checkbox = e.target as HTMLInputElement;
+    const newTheme: string = checkbox.checked ? 'dark' : 'light';
+    this.themeModeService.toggleTheme(newTheme);
+    this.showActiveTheme(newTheme);
+  }
+
+  /**
+   * Logout
+   */
+  onLogout(e: Event) {
+    e.preventDefault();
+
+    this._userService.logout().subscribe({
+      next: () => {
+        // Limpia cualquier dato local
+        localStorage.removeItem('currentUser');
+        localStorage.setItem('isLoggedin', 'false');
+        this._userService.setCurrentUser(null);
+
+        // Redirige al login
+        this.router.navigate(['/auth/login']);
+      },
+      error: (err) => {
+        console.error('Error al cerrar sesión', err);
+      }
+    });
+
+  }
+
+  /**
+   * Fixed header menu on scroll
+   */
+  @HostListener('window:scroll', ['$event']) getScrollHeight() {    
+    if (window.matchMedia('(min-width: 992px)').matches) {
+      let header: HTMLElement = document.querySelector('.horizontal-menu') as HTMLElement;
+      if(window.pageYOffset >= 60) {
+        header.parentElement!.classList.add('fixed-on-scroll')
+      } else {
+        header.parentElement!.classList.remove('fixed-on-scroll')
+      }
+    }
+  }
+
+  /**
+   * Returns true or false depending on whether the given menu item has a child
+   * @param item menuItem
+   */
+  hasItems(item: MenuItem) {
+    return item.subMenus !== undefined ? item.subMenus.length > 0 : false;
+  }
+
+  /**
+   * Toggle the header menu on tablet and mobile devices
+   */
+  toggleHeaderMenu() {
+    // document.querySelector('.horizontal-menu .bottom-navbar')!.classList.toggle('header-toggled');
+
+    const horizontalMenuToggleButton = document.querySelector('[data-toggle="horizontal-menu-toggle"]');
+    const bottomNavbar = document.querySelector('.horizontal-menu .bottom-navbar');
+    if (!bottomNavbar?.classList.contains('header-toggled')) {
+      bottomNavbar?.classList.add('header-toggled');
+      horizontalMenuToggleButton?.classList.add('open');
+      document.body.classList.add('header-open'); // Used to create a backdrop"
+    } else {
+      bottomNavbar?.classList.remove('header-toggled');
+      horizontalMenuToggleButton?.classList.remove('open');
+      document.body.classList.remove('header-open');
+    }
+  }
+
+  // Show or hide the submenu on mobile and tablet devices when a nav-item is clicked
+  toggleSubmenuOnSmallDevices(navItem: HTMLElement) {
+    if (window.matchMedia('(max-width: 991px)').matches) {
+      if (this.currentlyOpenedNavItem === navItem) {
+        this.currentlyOpenedNavItem = undefined;
+      } else {
+        this.currentlyOpenedNavItem = navItem;
+      }
+    }
+  }
+
+}

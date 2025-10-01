@@ -1,0 +1,161 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<div class="row">
+  <div class="col-md-12 stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <h6 class="card-title text-center">
+          DIAGNÓSTICO PARA CONTRIBUIR A LA IGUALDAD DE GÉNERO EN EL PODER LEGISLATIVO DEL ESTADO DE MÉXICO
+        </h6>
+
+        <div class="row">
+          <div ngbAccordion [closeOthers]="true">
+            <div ngbAccordionItem [collapsed]="false">
+              <h2 ngbAccordionHeader>
+                <button ngbAccordionButton><b>Objetivo del diagnóstico</b></button>
+              </h2>
+              <div ngbAccordionCollapse>
+                <div ngbAccordionBody>
+                  Identificar situaciones de desigualdad, discriminación o trato inequitativo por razón de género al
+                  interior del Poder Legislativo, con la finalidad de fortalecer e implementar acciones y buenas
+                  prácticas que promuevan una cultura de igualdad sustantiva entre hombres y mujeres.
+                </div>
+              </div>
+            </div>
+            <div ngbAccordionItem>
+              <h2 ngbAccordionHeader>
+                <button ngbAccordionButton>
+                  <b>Instrucciones de llenado</b>
+                </button>
+              </h2>
+              <div ngbAccordionCollapse>
+                <div ngbAccordionBody>
+                  <div class="contenido-centrado">
+                    <p>Este diagnóstico consta de 6 secciones.</p>
+                    <p class="mt-1">Marque con una ✔ la opción que mejor represente sus respuestas, mismas que serán
+                      anónimas y confidenciales.</p>
+                   
+                    <br />
+                    <p><strong>Consulta el <a href="https://legislacion.legislativoedomex.gob.mx/storage/documentos/avisosprivacidad/AvisodePrivacidadUIGEV.pdf" target="_blank" rel="noopener noreferrer">Aviso de Privacidad
+                          aquí.</a></strong></p>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <br /><br />
+        @if(!this.responde){
+        <div class="row">
+          <div class="col-md-12 grid-margin">
+            <div class="card">
+              <div class="card-body">
+                <form [formGroup]="formCuestionario" (ngSubmit)="submitCuestionario()" class="wizard-container">
+                  <h6 class="card-title text-center text-primary">{{ currentSectionTitle }}</h6>
+
+                  <aw-wizard #wizardForm *ngIf="seccionesArray.length > 0" [navBarLocation]="'top'"
+                    [defaultStepIndex]="0">
+                    <div formArrayName="secciones">
+                      <br>
+                      <aw-wizard-step *ngFor="let seccion of seccionesArray.controls; let i = index"
+                        [stepTitle]="'Sección ' + (i + 1)" [formGroupName]="i" [canExit]="canExitSection.bind(this, i)"
+                        (stepEnter)="onStepEnter($event, i)">
+                        <div formArrayName="preguntas" class="questions-group">
+                          <div *ngFor="let pregunta of getSeccionPreguntas(i).controls; let j = index"
+                            [formGroupName]="j" class="question-item">
+
+                            <p class="question-text">
+                              <ng-container *ngIf="i >= 1">
+                                {{ getPreguntaGlobalIndexDesdeSeccion2(i, j) }}.
+                              </ng-container>
+                              {{ pregunta.get('texto_pregunta')?.value }}
+                            </p>
+
+                            <div class="options-list">
+                              <div *ngFor="let opcion of pregunta.get('m_opciones')?.value" class="form-check">
+                                <ng-container *ngIf="pregunta.get('isCheckbox')?.value; else radioOption">
+                                  <label class="form-check-label d-block">
+                                    <input type="checkbox" class="form-check-input me-2" [value]="opcion.id"
+                                      (change)="onCheckboxChange($event, j, i)"
+                                      [checked]="pregunta.get('respuesta')?.value?.includes(opcion.id)" />
+
+                                    {{ opcion.texto_opcion }}
+                                  </label>
+                                </ng-container>
+
+                                <ng-template #radioOption>
+                                  <label class="form-check-label d-block">
+                                    <input type="radio" class="form-check-input me-2" formControlName="respuesta"
+                                      [value]="opcion.id" />
+                                    {{ opcion.texto_opcion }}
+                                  </label>
+                                </ng-template>
+                              </div>
+                            </div>
+
+                            <div
+                              *ngIf="!pregunta.get('isCheckbox')?.value && pregunta.get('respuesta')?.invalid && pregunta.get('respuesta')?.touched"
+                              class="text-danger">
+                              Esta pregunta es obligatoria
+                            </div>
+
+                            <div *ngIf="pregunta.get('hasOtroOption')?.value">
+                              <div *ngIf="isOtroSelected(pregunta)">
+                                <input type="text" class="form-control mt-2" formControlName="otroValor"
+                                  placeholder="Por favor especifica..." />
+                                <div *ngIf="pregunta.get('otroValor')?.invalid && pregunta.get('otroValor')?.touched"
+                                  class="text-danger">
+                                  Este campo es obligatorio
+                                </div>
+                              </div>
+                            </div>
+                            <hr class="question-separator" />
+                          </div>
+                        </div>
+                        <div *ngIf="i === 5" class="mt-4">
+                          <label for="comentarios" class="form-label">28. Comentarios adicionales (opcional):</label>
+                          <textarea id="comentarios" rows="4" class="form-control" [formControl]="comentariosControl"
+                            placeholder="Escribe aquí tus comentarios..."></textarea>
+                          <div class="mt-3 text-end">
+                            <button type="submit" [disabled]="formCuestionario.invalid"
+                              class="btn btn-success">Enviar</button>
+                          </div>
+                        </div>
+                        <div class="navigation-buttons mt-4">
+                          <button type="button" awPreviousStep class="btn btn-secondary">Anterior</button>
+                          <button *ngIf="i < 5" type="button" awNextStep class="btn btn-primary">Siguiente</button>
+                        </div>
+                      </aw-wizard-step>
+                    </div>
+                  </aw-wizard>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        }@else{
+        <div class="row justify-content-center">
+          <div class="col-md-8 col-lg-6">
+            <div class="card text-center shadow-sm border-success">
+              <div class="card-body py-5">
+                <div class="mb-4">
+                  <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                </div>
+                <h4 class="text-success">¡Respuestas registradas con éxito!</h4>
+                <p class="text-muted mt-1">
+                  <b>Registrado el {{ fechaRegistro | date: 'fullDate' }} a las {{ fechaRegistro | date: 'shortTime'
+                    }}</b>
+                </p>
+                <p class="text-muted mt-2 mb-0">
+                  Gracias por completar el cuestionario.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,162 @@
+<div class="horizontal-menu">
+  <nav class="navbar top-navbar">
+    <div class="container">
+      <div class="navbar-content">
+    
+        <!--- Logo -->
+        <a routerLink="/" class="navbar-brand mt-0">
+          <img src="https://documentacionsaf.gob.mx/cursos/images/logo/congreso.svg" style="height: 55px; width: auto;" alt="logo">
+        </a>
+
+        <!-- <a routerLink="/" class="navbar-brand">
+          <img src="assets/images/logo.png" alt="logo">
+        </a> -->
+
+        <!-- Logo-mini for small screen devices (mobile/tablet) -->
+        <div class="logo-mini-wrapper">
+          <img src="images/logo-mini-light.png" class="logo-mini logo-mini-light" alt="logo">
+          <img src="images/logo-mini-dark.png" class="logo-mini logo-mini-dark" alt="logo">
+        </div>       
+        <ul class="navbar-nav">    
+          <li class="nav-item nav-profile" ngbDropdown>
+            <a class="nav-link" ngbDropdownToggle id="profileDropdown">
+              <img class="w-30px h-30px ms-1 rounded-circle" src="https://static.vecteezy.com/system/resources/thumbnails/024/983/914/small_2x/simple-user-default-icon-free-png.png"  alt="profile">
+            </a>
+            <div ngbDropdownMenu class="px-0" aria-labelledby="profileDropdown">
+              <div class="d-flex flex-column align-items-center border-bottom px-5 py-3">
+                <div class="mb-3">
+                  <img class="w-80px h-80px rounded-circle" src="https://static.vecteezy.com/system/resources/thumbnails/024/983/914/small_2x/simple-user-default-icon-free-png.png" style="height: 80px; width: auto;" alt="">
+                </div>
+                <div class="text-center">
+                  <p class="tx-16 fw-bolder"></p>
+                  <p class="fs-12px text-secondary"></p>
+                </div>
+              </div>
+              <ul class="list-unstyled p-1">
+                <!-- <li>
+                  <a href="" (click)="false" class="dropdown-item py-2 d-flex ms-0">
+                    <i class="feather icon-edit me-2 icon-md"></i> 
+                    <span>Cambiar contraseña</span>
+                  </a>
+                </li> -->
+                <li>
+                  <a href="" (click)="onLogout($event)" class="dropdown-item py-2 d-flex ms-0">
+                    <i class="feather icon-log-out me-2 icon-md"></i>
+                    <span>Cerrar sesión</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </li>
+        </ul>
+        <!-- Navbar-menu-toggler on small devices (mobile/tablet) -->
+        <div data-toggle="horizontal-menu-toggle" class="navbar-toggler d-lg-none align-self-center" (click)="toggleHeaderMenu()">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        
+      </div>
+    </div>
+  </nav>
+
+  <nav class="bottom-navbar">
+		<div class="container">
+
+      <!--- Menu -->
+			<ul class="nav page-navigation">
+        @for (item of menuItems; track item.label) {
+
+          <!-- Nav item with a mega menu -->
+          @if (item.isMegaMenu) {
+            <li class="nav-item mega-menu" [routerLinkActive]="['active']" #navItemMegaMenu (click)="toggleSubmenuOnSmallDevices(navItemMegaMenu)" [ngClass]="{'show-submenu': currentlyOpenedNavItem === navItemMegaMenu}">
+              <a href="javascript:void(0);" class="nav-link">
+                @if (item.icon) {
+                  <i class="link-icon" [attr.data-feather]="item.icon" appFeatherIcon></i>
+                }
+                <span class="menu-title">{{ item.label }}</span>
+                <i class="link-arrow"></i>
+              </a>
+              <div class="submenu">
+                <div class="row">
+                  @for (subMenu of item.subMenus; track $index) {
+                    <div class="col-md-3">
+                      <ul class="submenu-item">
+                        @for (subMenuItem of subMenu.subMenuItems; track subMenuItem.label) {
+                          @if (subMenuItem.isTitle) {
+                            <li class="category-heading">{{ subMenuItem.label }}</li>
+                          }
+                          @else {
+                            <li class="nav-item">
+                              <a class="nav-link" [routerLinkActive]="['active']" [routerLink]="subMenuItem.link">{{ subMenuItem.label }}</a>
+                            </li>
+                          }
+                        }
+                      </ul>
+                    </div>
+                  }
+                </div>
+              </div>
+            </li>
+          }
+
+          <!-- Nav item with no mega menu -->
+          @else {
+            <li class="nav-item" [routerLinkActive]="['active']" #navItem (click)="toggleSubmenuOnSmallDevices(navItem)" [ngClass]="{'show-submenu': currentlyOpenedNavItem === navItem}">
+              
+              <!-- Nav link with a submenu -->
+              @if (hasItems(item)) {
+                <a href="javascript:void(0);" class="nav-link">
+                  @if (item.icon) {
+                    <i class="link-icon" [attr.data-feather]="item.icon" appFeatherIcon></i>
+                  }
+                  <span class="menu-title">{{ item.label }}</span>
+                  <i class="link-arrow"></i>
+                </a>
+                <div class="submenu">
+                  @for (subMenu of item.subMenus; track $index) {
+                    <ul class="submenu-item">
+                      @for (subMenuItem of subMenu.subMenuItems; track subMenuItem.label) {
+                        @if (subMenuItem.isTitle) {
+                          <li class="category-heading">{{ subMenuItem.label }}</li>
+                        }
+                        @else {
+                          <li class="nav-item">
+                            <a class="nav-link" [routerLinkActive]="['active']" [routerLink]="subMenuItem.link">{{ subMenuItem.label }}</a>
+                            @if (subMenuItem.badge) {
+                              <span class="badge bg-{{subMenuItem.badge.variant}}">{{subMenuItem.badge.text}}</span>
+                            }
+                          </li>
+                        }
+                      }
+                    </ul>
+                  }
+                </div>
+              }
+
+              <!-- Nav link with no submenu  -->
+              @else {
+                <a class="nav-link" [routerLink]="item.link">
+                  @if (item.icon) {
+                    <i class="link-icon" [attr.data-feather]="item.icon" appFeatherIcon></i>
+                  }
+                  <span class="menu-title">{{ item.label }}</span>
+                </a>
+              }
+
+            </li>
+          }
+
+        }
+
+
+				<!-- <li class="nav-item">
+					<a href="https://www.nobleui.com/angular/documentation/" target="_blank" class="nav-link">
+						<i class="link-icon" data-feather="hash"></i>
+						<span class="menu-title">Documentation222</span></a>
+				</li> -->
+			</ul>
+		</div>
+	</nav>
+</div>

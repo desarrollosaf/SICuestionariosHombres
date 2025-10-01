@@ -1,0 +1,34 @@
+Cuestionario
+------------
+id_cuestionario (PK)
+titulo
+descripcion
+
+Pregunta
+--------
+id_pregunta (PK)
+id_cuestionario (FK)
+texto_pregunta
+tipo  ← ('opcion_multiple', 'texto', 'numero', etc.)
+
+Opcion
+------
+id_opcion (PK)
+id_pregunta (FK)
+texto_opcion
+
+Sesion_Cuestionario
+-------------------
+id_sesion (PK)
+id_usuario (FK)
+fecha_inicio
+fecha_fin
+
+Respuesta
+---------
+id_respuesta (PK)
+id_sesion (FK) 
+id_pregunta (FK)
+id_opcion (FK) NULL si no es opción múltiple
+valor_texto    NULL si no aplica
+valor_numero   NULL si no aplica

@@ -1,0 +1,58 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<div class="row">
+  <div class="col-md-12 stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <h6 class="card-title text-center">
+          Servidores públicos.
+        </h6>
+        <div class="row align-items-center mb-3">
+          <div class="col-xl-3 col-md-4">
+            <input type="text" class="form-control form-control-sm" placeholder="Buscar..."
+              (input)="updateFilter($event)" />
+          </div>
+        </div>
+        <div class="table-responsive">
+          <div *ngIf="rows.length === 0 && !loading" class="text-center my-3">
+            <p><strong>No hay datos para mostrar</strong></p>
+          </div>
+          <ngx-datatable #table class="bootstrap" [rows]="rows" [columnMode]="'force'" [headerHeight]="50"
+            *ngIf="rows.length > 0" [externalSorting]="true" [externalPaging]="true"    [footerHeight]="50"
+            [rowHeight]="'auto'" [limit]="pageSize" [count]="filteredCount" [offset]="page" (page)="setPage($event)"
+            [loadingIndicator]="loading">
+            <ngx-datatable-column prop="servidor_publico" [headerClass]="'text-center'" [cellClass]="'text-center'"
+              name="Servidor Público">
+              <ng-template let-row="row" ngx-datatable-cell-template>
+                {{ row.Nombre }}
+              </ng-template>
+            </ngx-datatable-column>
+            <ngx-datatable-column prop="dependencia" [headerClass]="'text-center'" [cellClass]="'text-center'" name="Dependencia">
+              <ng-template let-row="row" ngx-datatable-cell-template>
+                {{ row.dependencia.nombre_completo }}
+              </ng-template>
+            </ngx-datatable-column>
+            <ngx-datatable-column prop="direccion" [headerClass]="'text-center'" [cellClass]="'text-center'" name="Direccion">
+              <ng-template let-row="row" ngx-datatable-cell-template>
+                {{ row.direccion.nombre_completo}}
+              </ng-template>
+            </ngx-datatable-column>
+            <ngx-datatable-column prop="departamento" [headerClass]="'text-center'" [cellClass]="'text-center'" name="Departamento">
+              <ng-template let-row="row" ngx-datatable-cell-template>
+                {{ row.departamento.nombre_completo }}
+              </ng-template>
+            </ngx-datatable-column>
+            <ngx-datatable-column [headerClass]="'text-center'" [cellClass]="'text-center'" name="Opciones">
+              <ng-template let-row="row" ngx-datatable-cell-template>
+                <div class="text-center">
+                  <a (click)="descargarPDF(row)" title="Descargar PDF" style="cursor: pointer; color: red;">
+                    <i class="bi bi-file-earmark-pdf-fill fs-3"></i>
+                  </a>
+                </div>
+              </ng-template>
+            </ngx-datatable-column>
+          </ngx-datatable>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
