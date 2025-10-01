@@ -58,7 +58,7 @@ export class CitasComponent {
     events: [],
     locale: 'es',
     // dateClick: this.onDateClick.bind(this),
-    eventClick: this.onEventClick.bind(this),
+    dateClick: this.onDateClick.bind(this),
     dayCellDidMount: (info) => {
       const today = new Date();
       const cellDate = info.date;
@@ -76,6 +76,20 @@ export class CitasComponent {
     selectMirror: true,
     dayMaxEvents: true
   };
+
+  onDateClick(arg: DateClickArg): void {
+    console.log('Día clicado:', arg.dateStr); 
+    this.selectedDate = arg.date;
+
+    this.fechaFormateadaM = this.selectedDate.toLocaleDateString('es-MX', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    this.abrirModal(null);
+  }
+
 
   onEventClick(arg: any): void {
     console.log('holi')
