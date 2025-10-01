@@ -30,13 +30,16 @@ const getHorariosDisponibles = (req, res) => __awaiter(void 0, void 0, void 0, f
         const resultado = {};
         horariosDisponibles.forEach(h => {
             const hora = `${h.horario_inicio} - ${h.horario_fin}`;
-            resultado[hora] = [];
+            const sedesDisponibles = [];
             sedes.forEach(s => {
                 const cantidadCitas = citas.filter(c => c.horario_id === h.id && c.sede_id === s.id).length;
                 if (cantidadCitas < limite) {
-                    resultado[hora].push(s.sede);
+                    sedesDisponibles.push(s.sede);
                 }
             });
+            if (sedesDisponibles.length > 0) {
+                resultado[hora] = sedesDisponibles;
+            }
         });
         return res.json({ Horarios: resultado });
     }

@@ -23,7 +23,7 @@ export const getHorariosDisponibles = async (req: Request, res: Response): Promi
 
     horariosDisponibles.forEach(h => {
       const hora = `${h.horario_inicio} - ${h.horario_fin}`;
-      resultado[hora] = [];
+      const sedesDisponibles: string[] = [];
 
       sedes.forEach(s => {
         const cantidadCitas = citas.filter(
@@ -31,9 +31,13 @@ export const getHorariosDisponibles = async (req: Request, res: Response): Promi
         ).length;
 
         if (cantidadCitas < limite) {
-          resultado[hora].push(s.sede);
+          sedesDisponibles.push(s.sede);
         }
       });
+
+      if (sedesDisponibles.length > 0) {
+        resultado[hora] = sedesDisponibles;
+      }
     });
 
     return res.json({ Horarios: resultado });
