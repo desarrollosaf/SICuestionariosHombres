@@ -973,7 +973,7 @@ export const getcuestionariosus = async (req: Request, res: Response): Promise<a
     }
 }
 
-export const getExcelFaltantes = async (req: Request, res: Response): Promise<any> => {
+/*export const getExcelFaltantes = async (req: Request, res: Response): Promise<any> => {
     
 
     try {
@@ -1066,7 +1066,7 @@ export const getExcelFaltantes = async (req: Request, res: Response): Promise<an
         res.status(500).send('Error al generar el Excel');
     }
 
-}
+}*/
 
 export const getExcel = async(req: Request, res: Response) : Promise<any> => {
     const ExcelJS = require('exceljs');

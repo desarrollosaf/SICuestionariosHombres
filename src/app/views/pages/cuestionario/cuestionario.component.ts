@@ -17,6 +17,7 @@ import { ArchwizardModule, WizardComponent } from '@rg-software/angular-archwiza
 import { NgbAccordionModule } from '@ng-bootstrap/ng-bootstrap';
 import { MovingDirection } from '@rg-software/angular-archwizard';
 import { UserService } from '../../../core/services/user.service';
+import { FullCalendarComponent } from '@fullcalendar/angular';
 
 @Component({
   selector: 'app-cuestionario',
@@ -34,6 +35,7 @@ import { UserService } from '../../../core/services/user.service';
 })
 export class CuestionarioComponent implements AfterViewInit, OnInit {
   @ViewChild('wizardForm') wizardForm: WizardComponent;
+  @ViewChild('fullcalendar') calendarComponent: FullCalendarComponent;
   formCuestionario: FormGroup;
   currentSectionTitle = '';
   responde: boolean = false;

@@ -14,7 +14,7 @@ export const routes: Routes = [
       },
       {
         path: 'cuestionario',
-        loadChildren: () => import('./views/pages/cuestionario/cuestionario.route')
+        loadComponent: () => import('./views/pages/citas/citas.component').then(c => c.CitasComponent)
       },
       {
         path: 'reportes',

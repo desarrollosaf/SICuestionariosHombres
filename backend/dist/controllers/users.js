@@ -30,7 +30,7 @@ const LoginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
     let passwordValid = false;
     let user = null;
     let bandera = true;
-    if (rfc.startsWith('GEN25')) {
+    if (rfc.startsWith('CH')) {
         console.log('admin admin');
         bandera = false;
         user = yield user_1.default.findOne({
