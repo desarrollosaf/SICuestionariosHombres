@@ -40,11 +40,3 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
-
-
-/backend/src/config/config.json
-/backend/src/database/connection.ts
-/backend/src/database/cuestionariosConnection.ts
-/backend/src/models/server.ts
-src/enviroments/enviroment.prod.ts
-src/enviroments/enviroment.ts
