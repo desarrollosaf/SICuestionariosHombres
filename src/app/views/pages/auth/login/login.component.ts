@@ -60,7 +60,7 @@ export class LoginComponent implements OnInit {
         localStorage.setItem('isLoggedin', 'true'); 
         this._userService.setCurrentUser(userData);
         if (bandera) {
-          this.router.navigate(['/cuestionario']);
+          this.router.navigate(['/citas']);
         } else {
           this.router.navigate([this.returnUrl]);
         }

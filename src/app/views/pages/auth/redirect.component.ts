@@ -16,12 +16,12 @@ export class RedirectComponent implements OnInit {
   ngOnInit(): void {
 
     const rfc = this.userService.currentUserValue?.rfc ?? '';
-    const role = rfc.startsWith('GEN25') ? 'GEN25' : 'usuario';
+    const role = rfc.startsWith('CH') ? 'CH' : 'usuario';
 
-    if (role == 'GEN25') {
+    if (role == 'CH') {
       this.router.navigate(['/reportes']);
     } else {
-      this.router.navigate(['/cuestionario']);
+      this.router.navigate(['/citas']);
     }
   }
 }

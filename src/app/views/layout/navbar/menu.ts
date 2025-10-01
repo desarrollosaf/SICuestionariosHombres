@@ -2,15 +2,15 @@ import { MenuItem } from './menu.model';
 
 export const MENU: MenuItem[] = [
   {
-    label: 'Cuestionario',
+    label: 'Citas',
     icon: 'home',
-    link: '/cuestionario',
+    link: '/citas',
     roles: ['usuario'],
   },
   {
     label: 'Reportes',
     icon: 'mail',
-    roles: ['GEN25'],
+    roles: ['CH'],
     subMenus: [
       {
         subMenuItems: [
@@ -19,7 +19,7 @@ export const MENU: MenuItem[] = [
             isTitle: true,
           },
           {
-            label: 'Graficas',
+            label: 'Citas',
             link: '/reportes'
           },
           {

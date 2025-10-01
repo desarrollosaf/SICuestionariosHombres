@@ -13,7 +13,7 @@ export const routes: Routes = [
       { path: '',  component: RedirectComponent,
       },
       {
-        path: 'cuestionario',
+        path: 'citas',
         loadComponent: () => import('./views/pages/citas/citas.component').then(c => c.CitasComponent)
       },
       {
