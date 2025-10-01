@@ -1,18 +1,24 @@
-import { Component, ViewChild, TemplateRef } from '@angular/core';
+import { Component, inject, TemplateRef, ViewChild } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ColumnMode, DatatableComponent, NgxDatatableModule } from '@siemens/ngx-datatable';
+import { Router, RouterLink, RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
+import Swal from 'sweetalert2';
 import { FullCalendarComponent } from '@fullcalendar/angular';
+import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
+import { RouterOutlet } from '@angular/router';
 import { FullCalendarModule } from '@fullcalendar/angular';
 import { CalendarOptions } from '@fullcalendar/core'; // useful for typechecking
 import dayGridPlugin from '@fullcalendar/daygrid';
-import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
-import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
-import { ColumnMode, DatatableComponent, NgxDatatableModule } from '@siemens/ngx-datatable';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink, RouterModule } from '@angular/router';
 
 
 @Component({
   selector: 'app-citas',
-  imports: [FullCalendarModule],
+  imports: [NgxDatatableModule, CommonModule, RouterModule, FormsModule,
+    ReactiveFormsModule, NgbTooltipModule, FullCalendarModule, ],
   templateUrl: './citas.component.html',
   styleUrl: './citas.component.scss'
 })
@@ -72,6 +78,7 @@ export class CitasComponent {
   };
 
   onEventClick(arg: any): void {
+    console.log('holi')
     const evento = arg.event;
     const today = new Date();
     const clickedDate = evento.start;
@@ -136,6 +143,6 @@ export class CitasComponent {
       descripcion: ''
     });
   }
-  
+
 }
 
