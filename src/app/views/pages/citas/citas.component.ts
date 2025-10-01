@@ -13,6 +13,8 @@ import { RouterOutlet } from '@angular/router';
 import { FullCalendarModule } from '@fullcalendar/angular';
 import { CalendarOptions } from '@fullcalendar/core'; // useful for typechecking
 import dayGridPlugin from '@fullcalendar/daygrid';
+import { CitasService } from '../../../service/citas.service';
+
 
 
 @Component({
@@ -45,12 +47,25 @@ export class CitasComponent {
   modalRef: NgbModalRef;
   viewState: 'lista' | 'enviar-link' | 'atender' = 'lista';
 
+  horarios = [
+    { hora: '7:05', sedes: ['sede1', 'sede2'] },
+    { hora: '7:10', sedes: ['sede1', 'sede2'] },
+    { hora: '7:15', sedes: ['sede1', 'sede3'] },
+  ];
+  horaSeleccionada2: string = '';
+  sedeSeleccionada: string = '';
+  sedesDisponibles2: string[] = [];
+
+  public _citasService = inject(CitasService);
+
   constructor(private fb: FormBuilder, private modalService: NgbModal, private router: Router) {
     this.formModal = this.fb.group({
       textLink: [''],
       descripcion: ['']
     });
   }
+
+
 
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, interactionPlugin],
@@ -87,8 +102,31 @@ export class CitasComponent {
       year: 'numeric'
     });
 
+    /*this._citasService.getCitas(this.fechaFormat).subscribe({
+      next: (response: any) => {
+        console.log(response)
+      },
+      error: (e: HttpErrorResponse) => {
+        const msg = e.error?.msg || 'Error desconocido'; 1
+        console.error('Error del servidor:', msg);
+      }
+    });*/
+
+
     this.abrirModal(null);
   }
+
+   onHoraChange() {
+    const horario = this.horarios.find(h => h.hora === this.horaSeleccionada2);
+    this.sedesDisponibles2 = horario ? horario.sedes : [];
+    this.sedeSeleccionada = ''; 
+  }
+
+  guardarSeleccion() {
+    console.log('Hora:', this.horaSeleccionada2);
+    console.log('Sede:', this.sedeSeleccionada);
+  }
+
 
 
   onEventClick(arg: any): void {

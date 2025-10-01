@@ -21,8 +21,54 @@
             <div class="modal-body w-100">
                 <div class="p-2 text-white text-muted bg-light">
                     <strong>Horario disponibles</strong>
+                    
                 </div>
                 <br>
+                
+
+                <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="hora" class="form-label">Selecciona un horario</label>
+                    <select
+                    id="hora"
+                    class="form-select"
+                    [(ngModel)]="horaSeleccionada2"
+                    (change)="onHoraChange()"
+                    name="hora"
+                    >
+                    <option value="" disabled selected>-- Selecciona una hora --</option>
+                    <option *ngFor="let item of horarios" [value]="item.hora">
+                        {{ item.hora }}
+                    </option>
+                    </select>
+                </div>
+
+                
+                <div class="col-md-6 mb-3" *ngIf="sedesDisponibles2.length > 0">
+                    <label for="sede" class="form-label">Selecciona una sede</label>
+                    <select
+                    id="sede"
+                    class="form-select"
+                    [(ngModel)]="sedeSeleccionada"
+                    name="sede"
+                    >
+                    <option value="" disabled selected>-- Selecciona una sede --</option>
+                    <option *ngFor="let sede of sedesDisponibles2" [value]="sede">
+                        {{ sede }}
+                    </option>
+                    </select>
+                </div>
+                </div>
+
+                <!-- Botón de acción -->
+                <button
+                class="btn btn-primary mt-3"
+                (click)="guardarSeleccion()"
+                [disabled]="!horaSeleccionada2 || !sedeSeleccionada"
+                >
+                Guardar selección
+                </button>
+
             
             </div>
             <div class="modal-footer">
