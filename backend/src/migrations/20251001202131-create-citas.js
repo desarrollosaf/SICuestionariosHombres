@@ -30,6 +30,9 @@ module.exports = {
       rfc: {
         type: Sequelize.STRING
       },
+      fecha_cita: {
+        type: Sequelize.DATEONLY
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
