@@ -6,77 +6,85 @@
         <h6 class="card-title text-center">
           CITAS 
         </h6>
-        <div class="d-flex justify-content-center">
-            <div style="width: 1300px;">
-              <div class="calendar-wrapper">
-                <full-calendar #fullcalendar [options]="calendarOptions"></full-calendar>
-              </div>
-            </div>
-        </div>  
-        <ng-template #xlModal let-modal>
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel"></h5>
-                <button type="button" class="btn-close" (click)="modal.close('by: close icon')" aria-label="Close"></button>
-            </div>
-            <div class="modal-body w-100">
-                <div class="p-2 text-white text-muted bg-light">
-                    <strong>Horario disponibles</strong>
+        @if(!mostrarCalendario){
+            <div class="d-flex justify-content-center">
+                <div style="width: 1300px;">
+                <div class="calendar-wrapper">
+                    <full-calendar #fullcalendar [options]="calendarOptions"></full-calendar>
+                </div>
+                </div>
+            </div>   
+        
+         }@else{
+            <p>Cita ya generada</p>
+         }
+
+         <ng-template #xlModal let-modal>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel"></h5>
+                    <button type="button" class="btn-close" (click)="modal.close('by: close icon')" aria-label="Close"></button>
+                </div>
+                <div class="modal-body w-100">
+                    <div class="p-2 text-white text-muted bg-light">
+                        <strong>Horario disponibles</strong>
+                        
+                    </div>
+                    <br>
                     
-                </div>
-                <br>
-                
 
-                <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="hora" class="form-label">Selecciona un horario</label>
-                    <select
-                    id="hora"
-                    class="form-select"
-                    [(ngModel)]="horaSeleccionada2"
-                    (change)="onHoraChange()"
-                    name="hora"
+                    <div class="row">
+                        <div class="mb-3">
+                        <label for="hora" class="form-label">Horario</label>
+                        <select
+                            id="hora"
+                            class="form-select"
+                            [(ngModel)]="horaSeleccionada2"
+                            name="hora"
+                            (change)="onHoraChange()"
+                        >
+                            <option [ngValue]="null" disabled selected>-- Selecciona un horario --</option>
+                            <option *ngFor="let horario of horarios" [ngValue]="horario.horario_id">
+                            {{ horario.horario_texto }}
+                            </option>
+                        </select>
+                        </div>
+
+                        <!-- Selección de sede -->
+                        <div class="mb-3" *ngIf="sedesDisponibles2.length > 0">
+                        <label for="sede" class="form-label">Sede</label>
+                        <select
+                            id="sede"
+                            class="form-select"
+                            [(ngModel)]="sedeSeleccionada"
+                            name="sede"
+                        >
+                            <option [ngValue]="null" disabled selected>-- Selecciona una sede --</option>
+                            <option *ngFor="let sede of sedesDisponibles2" [ngValue]="sede.sede_id">
+                            {{ sede.sede_texto }}
+                            </option>
+                        </select>
+                        </div>
+                    </div>
+
+
+                    <button
+                    class="btn btn-primary mt-3"
+                    (click)="guardarSeleccion()"
+                    [disabled]="!horaSeleccionada2 || !sedeSeleccionada"
                     >
-                    <option value="" disabled selected>-- Selecciona una hora --</option>
-                    <option *ngFor="let item of horarios" [value]="item.hora">
-                        {{ item.hora }}
-                    </option>
-                    </select>
-                </div>
+                    Guardar selección
+                    </button>
 
                 
-                <div class="col-md-6 mb-3" *ngIf="sedesDisponibles2.length > 0">
-                    <label for="sede" class="form-label">Selecciona una sede</label>
-                    <select
-                    id="sede"
-                    class="form-select"
-                    [(ngModel)]="sedeSeleccionada"
-                    name="sede"
-                    >
-                    <option value="" disabled selected>-- Selecciona una sede --</option>
-                    <option *ngFor="let sede of sedesDisponibles2" [value]="sede">
-                        {{ sede }}
-                    </option>
-                    </select>
                 </div>
+                <div class="modal-footer">
+                    <button type="button" id="focus-target" class="btn btn-secondary"
+                        (click)="modal.close('by: close button')">Cerrar</button>
                 </div>
-
-                <!-- Botón de acción -->
-                <button
-                class="btn btn-primary mt-3"
-                (click)="guardarSeleccion()"
-                [disabled]="!horaSeleccionada2 || !sedeSeleccionada"
-                >
-                Guardar selección
-                </button>
-
-            
-            </div>
-            <div class="modal-footer">
-                <button type="button" id="focus-target" class="btn btn-secondary"
-                    (click)="modal.close('by: close button')">Cerrar</button>
-            </div>
-        </ng-template>      
+            </ng-template>  
       </div>
+       
+
     </div>
   </div>
 </div>

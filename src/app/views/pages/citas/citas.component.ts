@@ -14,6 +14,7 @@ import { FullCalendarModule } from '@fullcalendar/angular';
 import { CalendarOptions } from '@fullcalendar/core'; // useful for typechecking
 import dayGridPlugin from '@fullcalendar/daygrid';
 import { CitasService } from '../../../service/citas.service';
+import { UserService } from '../../../core/services/user.service';
 
 
 
@@ -29,7 +30,7 @@ export class CitasComponent {
   @ViewChild('fullcalendar') calendarComponent: FullCalendarComponent;
   @ViewChild('xlModal', { static: true }) xlModal!: TemplateRef<any>;
 
-   formModal: FormGroup;
+  formModal: FormGroup;
   showModal = false;
   selectedDate: Date | null = null;
   fechaFormat: any;
@@ -42,23 +43,25 @@ export class CitasComponent {
   currentUser: any;
   banderaCita: number = 0;
   fechaHoraActual: string = '';
+  fechaCitaEnvio: string = '';
   fechaFormateadaM: string = '';
   personaSeleccionada: any = null;
   modalRef: NgbModalRef;
   viewState: 'lista' | 'enviar-link' | 'atender' = 'lista';
+  mostrarCalendario = false;
 
-  horarios = [
-    { hora: '7:05', sedes: ['sede1', 'sede2'] },
-    { hora: '7:10', sedes: ['sede1', 'sede2'] },
-    { hora: '7:15', sedes: ['sede1', 'sede3'] },
-  ];
-  horaSeleccionada2: string = '';
-  sedeSeleccionada: string = '';
-  sedesDisponibles2: string[] = [];
+  horarios: {
+    horario_id: number;
+    horario_texto: string;
+    sedes: { sede_id: number; sede_texto: string }[];
+  }[] = [];
+  horaSeleccionada2: number | null = null;
+  sedeSeleccionada: number | null = null;
+  sedesDisponibles2: Array<{ sede_id: number; sede_texto: string }> = [];
 
   public _citasService = inject(CitasService);
 
-  constructor(private fb: FormBuilder, private modalService: NgbModal, private router: Router) {
+  constructor(private fb: FormBuilder, private modalService: NgbModal, private router: Router, private _userService: UserService) {
     this.formModal = this.fb.group({
       textLink: [''],
       descripcion: ['']
@@ -66,6 +69,36 @@ export class CitasComponent {
   }
 
 
+
+  ngOnInit(): void {
+    this.currentUser = this._userService.currentUserValue;
+     this._citasService.getcitaRFC(this.currentUser.rfc).subscribe({
+      next: (response: any) => {
+         console.log()
+         if(response.citas.length > 0){
+            this.mostrarCalendario = true;
+         }
+      },
+      error: (e: HttpErrorResponse) => {
+        if (e.status == 400) {
+          Swal.fire({
+            position: 'center',
+            icon: 'error',
+            title: "¡Atención!",
+            text: "Ya tienes una cita activa",
+            showConfirmButton: false,
+            timer: 5000
+          });
+          if (this.modalRef) {
+            this.modalRef.close('');
+          }
+        } else {
+          const msg = e.error?.msg || 'Error desconocido';
+          console.error('Error del servidor:', msg);
+        }
+      }
+    });
+  }
 
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, interactionPlugin],
@@ -95,36 +128,93 @@ export class CitasComponent {
   onDateClick(arg: DateClickArg): void {
     console.log('Día clicado:', arg.dateStr); 
     this.selectedDate = arg.date;
+    this.fechaCitaEnvio =  arg.dateStr;
 
     this.fechaFormateadaM = this.selectedDate.toLocaleDateString('es-MX', {
       day: 'numeric',
       month: 'long',
       year: 'numeric'
     });
+    console.log(this.fechaFormateadaM)
 
-    /*this._citasService.getCitas(this.fechaFormat).subscribe({
+    this._citasService.getCitas(this.fechaCitaEnvio).subscribe({
       next: (response: any) => {
-        console.log(response)
+         console.log()
+        this.horarios = Array.isArray(response.horarios) ? response.horarios : [];
+         console.log(this.horarios)
       },
       error: (e: HttpErrorResponse) => {
         const msg = e.error?.msg || 'Error desconocido'; 1
         console.error('Error del servidor:', msg);
       }
-    });*/
+    });
 
 
     this.abrirModal(null);
   }
 
    onHoraChange() {
-    const horario = this.horarios.find(h => h.hora === this.horaSeleccionada2);
-    this.sedesDisponibles2 = horario ? horario.sedes : [];
-    this.sedeSeleccionada = ''; 
-  }
+      const horario = this.horarios.find(h => h.horario_id === this.horaSeleccionada2);
+      this.sedesDisponibles2 = (horario?.sedes ?? []).map(sede => {
+        if (typeof sede === 'string') {
+          return { sede_id: 0, sede_texto: sede };
+        }
+        return sede;
+      });
+
+      this.sedeSeleccionada = null;
+    }
 
   guardarSeleccion() {
+    this.currentUser = this._userService.currentUserValue;
     console.log('Hora:', this.horaSeleccionada2);
     console.log('Sede:', this.sedeSeleccionada);
+    console.log('usuario:', this.currentUser.rfc);
+
+    const datos = {
+      fecha_cita: this.fechaCitaEnvio,
+      horario_id: this.horaSeleccionada2,
+      sede_id: this.sedeSeleccionada,
+      rfc: this.currentUser.rfc
+    };
+    console.log(datos)
+
+    this._citasService.saveCita(datos).subscribe({
+      next: (response: any) => {
+         if (response.status == 200) {
+          Swal.fire({
+            position: 'center',
+            icon: 'success',
+            title: "¡Exito!",
+            text: "Cita generada correctamente",
+            showConfirmButton: false,
+            timer: 5000
+          });
+          this.mostrarCalendario = true;
+          this.modalRef.close();   
+        }
+        
+      },
+      error: (e: HttpErrorResponse) => {
+        if (e.status == 400) {
+          Swal.fire({
+            position: 'center',
+            icon: 'error',
+            title: "¡Atención!",
+            text: "Ya tienes una cita activa",
+            showConfirmButton: false,
+            timer: 5000
+          });
+          if (this.modalRef) {
+            this.modalRef.close('');
+          }
+        } else {
+          const msg = e.error?.msg || 'Error desconocido';
+          console.error('Error del servidor:', msg);
+        }
+      }
+    });
+
   }
 
 

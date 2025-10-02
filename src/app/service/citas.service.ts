@@ -17,7 +17,17 @@ export class CitasService {
   }
 
    getCitas(fecha: String): Observable<any> {
-    return this.http.get<any>(`${this.myAppUrl}${this.myAPIUrl}/getcitas/${fecha}`)
+    return this.http.get<any>(`${this.myAppUrl}${this.myAPIUrl}/gethorarios/${fecha}`)
   }
+
+   saveCita(data:any): Observable<string> {
+        return this.http.post<string>(`${this.myAppUrl}${this.myAPIUrl}/savecita/`,data)
+    }
+
+    getcitaRFC(rfc: String): Observable<any> {
+    return this.http.get<any>(`${this.myAppUrl}${this.myAPIUrl}/getcitaservidor/${rfc}`)
+  }
+
+    
 
 }
