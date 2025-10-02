@@ -108,7 +108,6 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 exports.savecita = savecita;
 const getcitasagrupadas = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Traemos todas las citas junto con sede y horario
         const citas = yield citas_1.default.findAll({
             include: [
                 {
@@ -134,26 +133,28 @@ const getcitasagrupadas = (req, res) => __awaiter(void 0, void 0, void 0, functi
                 ? `${citaAny.HorarioCita.horario_inicio} - ${citaAny.HorarioCita.horario_fin}`
                 : "Horario desconocido";
             if (!agrupadas[fecha])
-                agrupadas[fecha] = {};
-            if (!agrupadas[fecha][sede])
-                agrupadas[fecha][sede] = {};
-            if (!agrupadas[fecha][sede][horario]) {
-                agrupadas[fecha][sede][horario] = {
+                agrupadas[fecha] = { total_citas: 0, sedes: {} };
+            if (!agrupadas[fecha].sedes[sede])
+                agrupadas[fecha].sedes[sede] = {};
+            if (!agrupadas[fecha].sedes[sede][horario]) {
+                agrupadas[fecha].sedes[sede][horario] = {
                     total_citas: 0,
                     citas: []
                 };
             }
-            agrupadas[fecha][sede][horario].total_citas += 1;
-            agrupadas[fecha][sede][horario].citas.push(cita);
+            agrupadas[fecha].total_citas += 1;
+            agrupadas[fecha].sedes[sede][horario].total_citas += 1;
+            agrupadas[fecha].sedes[sede][horario].citas.push(cita);
         });
         const resultado = Object.keys(agrupadas).map(fecha => ({
             fecha_cita: fecha,
-            sedes: Object.keys(agrupadas[fecha]).map(sede => ({
+            total_citas: agrupadas[fecha].total_citas,
+            sedes: Object.keys(agrupadas[fecha].sedes).map(sede => ({
                 sede,
-                horarios: Object.keys(agrupadas[fecha][sede]).map(horario => ({
+                horarios: Object.keys(agrupadas[fecha].sedes[sede]).map(horario => ({
                     horario,
-                    total_citas: agrupadas[fecha][sede][horario].total_citas,
-                    citas: agrupadas[fecha][sede][horario].citas
+                    total_citas: agrupadas[fecha].sedes[sede][horario].total_citas,
+                    citas: agrupadas[fecha].sedes[sede][horario].citas
                 }))
             }))
         }));
