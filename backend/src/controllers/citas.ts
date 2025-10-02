@@ -415,7 +415,7 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
     const doc = new PDFDocument({ size: "LETTER", margin: 50 });
     const chunks: any[] = [];
 
-    const pdfDir = path.join(process.cwd(), "public/pdfs");
+    const pdfDir = path.join(process.cwd(), "storage/public/pdfs");
     if (!fs.existsSync(pdfDir)) {
       fs.mkdirSync(pdfDir, { recursive: true });
     }
@@ -443,12 +443,12 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
     doc.on("error", reject);
 
     // ===== CONTENIDO DEL PDF =====
-    doc.image(path.join(__dirname, "../assets/acusederegistro.png"), 0, 0, {
+    doc.image(path.join(__dirname, "../assets/salud_page.jpg"), 0, 0, {
       width: doc.page.width,
       height: doc.page.height,
     });
 
-    doc.moveDown(4);
+    doc.moveDown(5);
     doc.fontSize(18).font("Helvetica-Bold").text("CAMPAÑA GRATUITA DE SALUD MASCULINA", {
       align: "center",
       underline: true,
@@ -465,7 +465,7 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
 
     doc.moveDown();
     doc.fontSize(11).text(
-      "El Voluntariado del Poder Legislativo del Estado de México organiza la Campaña gratuita de salud masculina...",
+      "El Voluntariado del Poder Legislativo del Estado de México organiza la Campaña gratuita de salud masculina, que incluye Check up médico y la prueba de Antígeno Prostático Específico (PSA).",
       { align: "justify" }
     );
 
@@ -477,9 +477,13 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
     doc.moveDown();
     doc.fontSize(11).list(
       [
-        "Identificación oficial: Se aceptará únicamente credencial para votar (INE) vigente o gafete oficial expedido...",
+        "Identificación oficial: Se aceptará únicamente credencial para votar (INE) vigente o gafete oficial expedido por la Dirección de Administración y Desarrollo de Personal. Deberán presentarse en original y copia.",
       ],
       { bulletIndent: 20 }
+    );
+     doc.fontSize(11).text(
+      "Si no se presenta alguno de estos documentos el día de la cita, no podrá realizar su examen y este se dará por perdido. Aviso de Privacidad",
+      { align: "justify" }
     );
 
     doc.moveDown();
