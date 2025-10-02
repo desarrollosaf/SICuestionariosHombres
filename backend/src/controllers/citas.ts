@@ -11,7 +11,11 @@ import Direccion from '../models/saf/t_direccion';
 import Departamento from '../models/saf/t_departamento';
 import { dp_fum_datos_generales } from '../models/fun/dp_fum_datos_generales';
 import { dp_datospersonales } from '../models/fun/dp_datospersonales';
-import sequelizefun from '../database/fun'; // La conexión
+import sequelizefun from '../database/fun'; 
+import PDFDocument from 'pdfkit';
+import fs from 'fs';
+import path from 'path';
+
 
 dp_datospersonales.initModel(sequelizefun);
 dp_fum_datos_generales.initModel(sequelizefun);
@@ -83,19 +87,20 @@ export const savecita = async (req: Request, res: Response): Promise<any> => {
     // }
 
     const cantidadCitas = await Cita.count({
-      where: {
-        horario_id: body.horario_id,
-        sede_id: body.sede_id,
-        fecha_cita: body.fecha_cita
-      }
-    });
+  where: {
+    horario_id: body.horario_id,
+    sede_id: body.sede_id,
+    fecha_cita: body.fecha_cita
+  }
+});
 
-    if (cantidadCitas >= limite) {
-      return res.status(400).json({
-        status: 400,
-        msg: "Este horario ya está ocupado para la fecha y sede seleccionada"
-      });
-    }
+if (cantidadCitas >= limite) {
+  return res.status(400).json({
+    status: 400,
+    msg: "Este horario ya está ocupado para la fecha y sede seleccionada"
+  });
+}
+
 
     const folio: number = Math.floor(10000000 + Math.random() * 90000000);
 
@@ -109,16 +114,71 @@ export const savecita = async (req: Request, res: Response): Promise<any> => {
       folio: folio
     });
 
-    return res.json({
-      status: 200,
-      msg: "Cita registrada correctamente",
-    });
 
-  } catch (error) {
-    console.error('Error al guardar la cita:', error);
-    return res.status(500).json({ msg: 'Error interno del servidor' });
+
+  
+    const horarios = await HorarioCita.findOne({
+      where: { id: body.horario_id }
+    });
+  const horario = horarios ? `${horarios.horario_inicio} - ${horarios.horario_fin}` : '';
+  const sede2 = (await Sede.findOne({ where: { id: body.sede_id } }))?.sede || "";
+
+   const Validacion = await dp_fum_datos_generales.findOne({ 
+  where: { f_rfc: body.rfc },
+  attributes: ["f_nombre", "f_primer_apellido", "f_segundo_apellido", "f_sexo", "f_fecha_nacimiento"]
+});
+
+if (!Validacion) {
+  throw new Error("No se encontró información para el RFC proporcionado");
+}
+
+const nombreCompleto = [
+  Validacion.f_nombre,
+  Validacion.f_primer_apellido,
+  Validacion.f_segundo_apellido
+].filter(Boolean).join(" ");
+
+const sexo = Validacion.f_sexo || "";
+
+let edad = "";
+if (Validacion.f_fecha_nacimiento) {
+  const nacimiento = new Date(Validacion.f_fecha_nacimiento);
+  const hoy = new Date();
+  edad = (hoy.getFullYear() - nacimiento.getFullYear()).toString();
+  const mes = hoy.getMonth() - nacimiento.getMonth();
+  if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+    edad = (parseInt(edad) - 1).toString();
   }
-};
+}
+
+  const pdfBuffer = await generarPDFBuffer({
+    folio: cita.id.toString(),
+    nombreCompleto: nombreCompleto,
+    sexo: sexo,
+    edad: edad,
+    correo: body.correo,
+    curp: body.rfc,
+    fecha: new Date().toLocaleDateString(),
+    telefono: body.telefono,
+    sede: sede2,
+    horario: horario
+  });
+
+  // Enviar el PDF como respuesta al usuario
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `attachment; filename="Cita-${body.fecha_cita}.pdf"`);
+  res.send(pdfBuffer);
+
+  return res.json({
+    status: 200,
+    msg: "Cita registrada correctamente",
+  });
+
+    } catch (error) {
+      console.error('Error al guardar la cita:', error);
+      return res.status(500).json({ msg: 'Error interno del servidor' });
+    }
+  };
 
 export const getcitasagrupadas = async (req: Request, res: Response): Promise<any> => {
   try {
@@ -335,3 +395,88 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
   }
 };
 
+function generarPDFBuffer(data: {
+  folio: string;
+  nombreCompleto: string;
+  sexo: string;
+  edad: string;
+  correo: string;
+  curp: string;
+  fecha: string;
+  telefono: string;
+  sede: string;
+  horario: string;
+}): Promise<Buffer> {
+  return new Promise(async (resolve, reject) => {
+    const doc = new PDFDocument({ size: 'LETTER', margin: 50 });
+    const chunks: any[] = [];
+
+    // Ruta donde se guardará el PDF
+    const pdfDir = path.join(process.cwd(), 'public/pdfs');
+    if (!fs.existsSync(pdfDir)) {
+      fs.mkdirSync(pdfDir, { recursive: true });
+    }
+
+    const fileName = `acuse_${data.folio}.pdf`;
+    const filePath = path.join(pdfDir, fileName);
+
+    const writeStream = fs.createWriteStream(filePath);
+    doc.pipe(writeStream);
+    doc.on('data', (chunk: any) => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+
+    // ✅ Imagen de fondo
+    doc.image(path.join(__dirname, '../assets/acusederegistro.png'), 0, 0, {
+      width: doc.page.width,
+      height: doc.page.height,
+    });
+
+    // Título centralizado
+    doc.moveDown(4);
+    doc.fontSize(18).font('Helvetica-Bold').text('CAMPANA GRATUITA DE SALUD MASCULINA', {
+      align: 'center',
+      underline: true
+    });
+
+    // Datos del paciente
+    doc.moveDown(2);
+    doc.fontSize(12)
+      .font('Helvetica')
+      .text(`Paciente: ${data.nombreCompleto} | ${data.sexo} | ${data.edad}`, { align: 'left' })
+      .text(`CURP: ${data.curp}`, { align: 'left' })
+      .text(`Correo electrónico: ${data.correo} | Teléfono: ${data.telefono} `, { align: 'left' })
+      .text(`Ubicación: ${data.sede}`, { align: 'left' })
+      .text(`Horario: ${data.horario}`, { align: 'left' });
+
+
+    doc.moveDown();
+
+    // Información adicional de la campaña
+    doc.fontSize(11).text('El Voluntariado del Poder Legislativo del Estado de México organiza la Campaña gratuita de salud masculina, que incluye chequeo médico y la prueba de Antígeno Prostático Específico (PSA).', { align: 'justify' });
+
+    // Detalles de la documentación
+    doc.fontSize(11).text('Para acceder a este beneficio, es indispensable presentar en el día y hora asignados la siguiente documentación:', { align: 'justify' });
+    doc.moveDown();
+    doc.fontSize(11).list([
+      'Identificación oficial: Se aceptará únicamente credencial para votar (INE) vigente o gafete oficial expedido por la Dirección de Administración y Desarrollo de Personal. Deberá presentar en original y copia. Si no se presenta alguno de estos documentos el día de la cita, no podrá realizar su examen y se le dará por perdido.',
+    ], { bulletIndent: 20 });
+
+    doc.moveDown();
+
+    // Pie de página con aviso de privacidad
+    doc.font('Helvetica-Bold')
+   .fontSize(10)
+   .text('Aviso de Privacidad', { align: 'left' });
+
+    doc.font('Helvetica') // volver a fuente normal
+      .fontSize(9)
+      .text('Consúltalo en:', { align: 'left' });
+
+    doc.font('Helvetica')
+      .fontSize(9)
+      .text('https://legislacion.legislativoedomex.gob.mx/storage/documentos/avisosprivacidad/expediente-clinico.pdf', { align: 'left' });
+
+        doc.end();
+      });
+}
