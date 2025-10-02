@@ -272,20 +272,16 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
       },
       order: [["fecha_cita", "ASC"]]
     });
-    console.log(citas)
+  
 
     console.log(citas);
      for (const cita of citas) {
             if (cita.rfc) {
                 console.log('Buscando datos personales para:', cita.rfc);
 
-                const datos = await dp_datospersonales.findOne({
+                const datos = await dp_fum_datos_generales.findOne({
                  where: { f_rfc: cita.rfc },
                     attributes: [
-                      'correo_ins',
-                      'correo_per',
-                      'numero_tel',
-                      'numero_cel',
                       [Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo']
                     ],
                   raw: true

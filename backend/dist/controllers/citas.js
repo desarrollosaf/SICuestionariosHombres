@@ -249,17 +249,12 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             order: [["fecha_cita", "ASC"]]
         });
         console.log(citas);
-        console.log(citas);
         for (const cita of citas) {
             if (cita.rfc) {
                 console.log('Buscando datos personales para:', cita.rfc);
-                const datos = yield dp_datospersonales_1.dp_datospersonales.findOne({
+                const datos = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
                     where: { f_rfc: cita.rfc },
                     attributes: [
-                        'correo_ins',
-                        'correo_per',
-                        'numero_tel',
-                        'numero_cel',
                         [sequelize_2.Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo']
                     ],
                     raw: true
