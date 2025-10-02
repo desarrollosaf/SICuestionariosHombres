@@ -72,7 +72,7 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
       edad--;
     }
 
-    if (sexo !== "H" || edad < 20) {
+    if (sexo !== "H" || edad < 40) {
       return res.status(400).json({ msg: "Usuario no válido" });
     }
         user = await User.findOne({ 
