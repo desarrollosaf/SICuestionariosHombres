@@ -1,7 +1,7 @@
 import { Sequelize } from "sequelize"
 
-const sequelizefun = new Sequelize('administracion', 'homestead', 'secret', {
-    host: '192.168.10.10',
+const sequelizefun = new Sequelize('adminplem_administracion', 'usr_jornadasalud', 'P1OrpsDU6JqMtRDfGmqI', {
+    host: '192.168.36.53',
     dialect: 'mysql',
     define: {
         freezeTableName: true // evita que Sequelize pluralice
