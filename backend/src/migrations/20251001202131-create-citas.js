@@ -39,6 +39,9 @@ module.exports = {
       telefono: {
         type: Sequelize.STRING
       },
+      folio: {
+        type: Sequelize.STRING
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
