@@ -281,6 +281,7 @@ export const getCita = async (req: Request, res: Response): Promise<any> => {
         correo: cita.correo,
         telefono: cita.telefono,
         folio: cita.folio,
+        path: cita.path,
         sede: citaAny.Sede?.sede || "Desconocida",
         sede_id: citaAny.Sede?.id || null,
         horario_id: cita.horario_id,

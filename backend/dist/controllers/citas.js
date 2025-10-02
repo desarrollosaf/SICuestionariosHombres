@@ -254,6 +254,7 @@ const getCita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 correo: cita.correo,
                 telefono: cita.telefono,
                 folio: cita.folio,
+                path: cita.path,
                 sede: ((_a = citaAny.Sede) === null || _a === void 0 ? void 0 : _a.sede) || "Desconocida",
                 sede_id: ((_b = citaAny.Sede) === null || _b === void 0 ? void 0 : _b.id) || null,
                 horario_id: cita.horario_id,
