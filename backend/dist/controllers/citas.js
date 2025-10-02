@@ -234,24 +234,31 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         else if (prefijo === "JSC") {
             sedeFilter = { sede_id: 1 };
         }
-        else {
-            sedeFilter = {};
-        }
-        const today = new Date();
-        const tomorrow = new Date();
-        tomorrow.setDate(today.getDate() + 1);
-        console.log(fecha);
-        const formatDate = (date) => date.toISOString().split('T')[0];
-        const citas = yield citas_1.default.findAll({
-            where: Object.assign({ fecha_cita: {
-                    [sequelize_1.Op.eq]: fecha
-                } }, sedeFilter),
-            order: [["fecha_cita", "ASC"]]
+        const horarios = yield horarios_citas_1.default.findAll({
+            order: [["id", "ASC"]],
+            raw: true
         });
-        console.log(citas);
+        const citas = yield citas_1.default.findAll({
+            where: Object.assign({ fecha_cita: { [sequelize_1.Op.eq]: fecha } }, sedeFilter),
+            include: [
+                { model: sedes_1.default, as: "Sede", attributes: ["sede"] }
+            ],
+            order: [["horario_id", "ASC"]]
+        });
+        const resultado = {};
+        for (const h of horarios) {
+            const hora = `${h.horario_inicio} - ${h.horario_fin}`;
+            resultado[hora] = [];
+        }
+        for (const cita of citas) {
+            const horario = horarios.find(h => h.id === cita.horario_id);
+            if (horario) {
+                const hora = `${horario.horario_inicio} - ${horario.horario_fin}`;
+                resultado[hora].push(cita);
+            }
+        }
         for (const cita of citas) {
             if (cita.rfc) {
-                console.log('Buscando datos personales para:', cita.rfc);
                 const datos = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
                     where: { f_rfc: cita.rfc },
                     attributes: [
@@ -260,55 +267,30 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                     raw: true
                 });
                 if (datos) {
-                    cita.setDataValue('datos_user', datos);
+                    cita.setDataValue("datos_user", datos);
                 }
-            }
-        }
-        for (const cita of citas) {
-            if (cita.rfc) {
-                console.log('Buscando datos personales para:', cita.rfc);
-                const datos = yield s_usuario_1.default.findOne({
+                const usuario = yield s_usuario_1.default.findOne({
                     where: { N_Usuario: cita.rfc },
-                    attributes: [
-                        'N_Usuario',
-                    ],
+                    attributes: ["N_Usuario"],
                     include: [
-                        {
-                            model: t_dependencia_1.default,
-                            as: 'dependencia',
-                            attributes: [
-                                'nombre_completo',
-                            ],
-                        },
-                        {
-                            model: t_direccion_1.default,
-                            as: 'direccion',
-                            attributes: [
-                                'nombre_completo',
-                            ],
-                        },
-                        {
-                            model: t_departamento_1.default,
-                            as: 'departamento',
-                            attributes: [
-                                'nombre_completo',
-                            ],
-                        },
-                    ],
+                        { model: t_dependencia_1.default, as: "dependencia", attributes: ["nombre_completo"] },
+                        { model: t_direccion_1.default, as: "direccion", attributes: ["nombre_completo"] },
+                        { model: t_departamento_1.default, as: "departamento", attributes: ["nombre_completo"] }
+                    ]
                 });
-                if (datos) {
-                    cita.setDataValue('dependencia', datos);
+                if (usuario) {
+                    cita.setDataValue("dependencia", usuario);
                 }
             }
         }
         return res.json({
-            msg: `si existe el servidor`,
-            citas: citas,
+            msg: "Horarios con citas agrupadas",
+            horarios: resultado
         });
     }
     catch (error) {
         console.error(error);
-        return res.status(500).json({ error: 'Ocurrió un error al obtener los registros' });
+        return res.status(500).json({ error: "Ocurrió un error al obtener los registros" });
     }
 });
 exports.getcitasFecha = getcitasFecha;

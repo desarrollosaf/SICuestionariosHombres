@@ -243,106 +243,87 @@ export const getCita = async (req: Request, res: Response): Promise<any> => {
 
 export const getcitasFecha = async (req: Request, res: Response): Promise<any> => {
   try {
-    
     const { fecha, rfc } = req.params;
     const prefijo = rfc.substring(0, 3).toUpperCase();
-     let sedeFilter: any = {};
-    
+
+    let sedeFilter: any = {};
     if (prefijo === "JSV") {
-      sedeFilter = { sede_id: 2 }; 
+      sedeFilter = { sede_id: 2 };
     } else if (prefijo === "JSC") {
-      sedeFilter = { sede_id: 1 }; 
-    } else {
-      sedeFilter = {}; 
+      sedeFilter = { sede_id: 1 };
+    } 
+
+
+    const horarios = await HorarioCita.findAll({
+      order: [["id", "ASC"]],
+      raw: true
+    });
+
+
+    const citas = await Cita.findAll({
+      where: {
+        fecha_cita: { [Op.eq]: fecha },
+        ...sedeFilter
+      },
+      include: [
+        { model: Sede, as: "Sede", attributes: ["sede"] }
+      ],
+      order: [["horario_id", "ASC"]]
+    });
+
+
+    const resultado: Record<string, any[]> = {};
+
+    for (const h of horarios) {
+      const hora = `${h.horario_inicio} - ${h.horario_fin}`;
+      resultado[hora] = [];
     }
 
-    const today = new Date();
-    const tomorrow = new Date();
-    tomorrow.setDate(today.getDate() + 1);
+    for (const cita of citas) {
+      const horario = horarios.find(h => h.id === cita.horario_id);
+      if (horario) {
+        const hora = `${horario.horario_inicio} - ${horario.horario_fin}`;
+        resultado[hora].push(cita);
+      }
+    }
 
-    console.log(fecha)
-    const formatDate = (date: Date) => date.toISOString().split('T')[0];
-
-     const citas = await Cita.findAll({
-      where: {
-        fecha_cita: {
-          [Op.eq]: fecha
-        },
-        ...sedeFilter 
-      },
-      order: [["fecha_cita", "ASC"]]
-    });
   
+    for (const cita of citas) {
+      if (cita.rfc) {
+        const datos = await dp_fum_datos_generales.findOne({
+          where: { f_rfc: cita.rfc },
+          attributes: [
+            [Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo']
+          ],
+          raw: true
+        });
+        if (datos) {
+          cita.setDataValue("datos_user", datos);
+        }
 
-    console.log(citas);
-     for (const cita of citas) {
-            if (cita.rfc) {
-                console.log('Buscando datos personales para:', cita.rfc);
-
-                const datos = await dp_fum_datos_generales.findOne({
-                 where: { f_rfc: cita.rfc },
-                    attributes: [
-                      [Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo']
-                    ],
-                  raw: true
-                });
-
-                if (datos) {
-                cita.setDataValue('datos_user', datos);
-                }
-            }
+        const usuario = await SUsuario.findOne({
+          where: { N_Usuario: cita.rfc },
+          attributes: ["N_Usuario"],
+          include: [
+            { model: Dependencia, as: "dependencia", attributes: ["nombre_completo"] },
+            { model: Direccion, as: "direccion", attributes: ["nombre_completo"] },
+            { model: Departamento, as: "departamento", attributes: ["nombre_completo"] }
+          ]
+        });
+        if (usuario) {
+          cita.setDataValue("dependencia", usuario);
+        }
       }
-
-      for (const cita of citas) {
-            if (cita.rfc) {
-                console.log('Buscando datos personales para:', cita.rfc);
-
-                const datos = await SUsuario.findOne({
-                 where: { N_Usuario: cita.rfc },
-                    attributes: [
-                      'N_Usuario', 
-                    ], 
-                    include: [
-                        {
-                        model: Dependencia,
-                        as: 'dependencia',
-                        attributes: [
-                          'nombre_completo', 
-                        ], 
-                        },
-                        {
-                        model: Direccion,
-                        as: 'direccion',
-                        attributes: [
-                          'nombre_completo', 
-                        ], 
-                        },
-                        {
-                        model: Departamento,
-                        as: 'departamento',
-                        attributes: [
-                          'nombre_completo', 
-                        ], 
-                        },
-                    ],
-                });
-
-                if (datos) {
-                cita.setDataValue('dependencia', datos);
-                }
-            }
-      }
-
-
+    }
 
     return res.json({
-      msg: `si existe el servidor`,
-      citas: citas,
-    
+      msg: "Horarios con citas agrupadas",
+      horarios: resultado
     });
+
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Ocurrió un error al obtener los registros' });
+    return res.status(500).json({ error: "Ocurrió un error al obtener los registros" });
   }
 };
 
