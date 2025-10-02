@@ -19,11 +19,11 @@ export const getHorariosDisponibles = async (req: Request, res: Response): Promi
     });
 
     const sedes = await Sede.findAll();
-    const resultado: Record<string, string[]> = {};
+
+    const resultado: any[] = [];
 
     horariosDisponibles.forEach(h => {
-      const hora = `${h.horario_inicio} - ${h.horario_fin}`;
-      const sedesDisponibles: string[] = [];
+      const sedesDisponibles: { sede_id: number; sede_texto: string }[] = [];
 
       sedes.forEach(s => {
         const cantidadCitas = citas.filter(
@@ -31,19 +31,43 @@ export const getHorariosDisponibles = async (req: Request, res: Response): Promi
         ).length;
 
         if (cantidadCitas < limite) {
-          sedesDisponibles.push(s.sede);
+          sedesDisponibles.push({ sede_id: s.id, sede_texto: s.sede });
         }
       });
 
       if (sedesDisponibles.length > 0) {
-        resultado[hora] = sedesDisponibles;
+        resultado.push({
+          horario_id: h.id,
+          horario_texto: `${h.horario_inicio} - ${h.horario_fin}`,
+          sedes: sedesDisponibles
+        });
       }
     });
 
-    return res.json({ Horarios: resultado });
+    return res.json({ horarios: resultado });
 
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Error al obtener horarios disponibles" });
   }
 };
+
+
+
+export const savecuestionario = async (req: Request, res: Response): Promise<any> => {
+    try {
+        const { body } = req
+             const cita = await Cita.create({
+                "horario_id": body.horario_id,
+                "sede_id": body.sede_id,
+                "rfc": body.rfc,
+                "fecha_cita": body.fecha_cita,
+            });
+            return res.json({
+                status: 200
+            });
+    } catch (error) {
+        console.error('Error al guardar la cita:', error);
+        return res.status(500).json({ msg: 'Error interno del servidor' });
+    }
+}
