@@ -107,14 +107,8 @@ export class CitasComponent {
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
-    events: [],
     locale: 'es',
-    // dateClick: this.onDateClick.bind(this),
     dateClick: this.onDateClick.bind(this),
-    dayCellDidMount: (info) => {
-      const today = new Date();
-      const cellDate = info.date;
-    },
     buttonText: {
       today: 'Hoy',
       month: 'Mes',
@@ -123,10 +117,24 @@ export class CitasComponent {
       list: 'Lista'
     },
     weekends: true,
-    editable: true,
+    editable: false,
     selectable: true,
     selectMirror: true,
-    dayMaxEvents: true
+    dayMaxEvents: true,
+
+    validRange: {
+      start: '2025-10-08',
+      end: '2025-10-11' 
+    },
+
+    dayCellDidMount: (info) => {
+      const dateStr = info.date.toISOString().split('T')[0];
+      if (dateStr !== '2025-10-08' && dateStr !== '2025-10-09' && dateStr !== '2025-10-10') {
+        info.el.style.backgroundColor = '#f8f9fa';
+        info.el.style.pointerEvents = 'none';
+        info.el.style.opacity = '0.3';
+      }
+    }
   };
 
   onDateClick(arg: DateClickArg): void {
