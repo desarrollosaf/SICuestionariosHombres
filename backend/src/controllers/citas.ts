@@ -117,7 +117,6 @@ export const savecita = async (req: Request, res: Response): Promise<any> => {
 
 export const getcitasagrupadas = async (req: Request, res: Response): Promise<any> => {
   try {
-    // Traemos todas las citas junto con sede y horario
     const citas = await Cita.findAll({
       include: [
         {
@@ -140,33 +139,34 @@ export const getcitasagrupadas = async (req: Request, res: Response): Promise<an
       const fecha = new Date(cita.fecha_cita).toISOString().split("T")[0];
       const sede = (cita as any).Sede?.sede || "Desconocida";
       const citaAny = cita as any;
-        const horario = citaAny.HorarioCita
+      const horario = citaAny.HorarioCita
         ? `${citaAny.HorarioCita.horario_inicio} - ${citaAny.HorarioCita.horario_fin}`
         : "Horario desconocido";
 
-      if (!agrupadas[fecha]) agrupadas[fecha] = {};
-      if (!agrupadas[fecha][sede]) agrupadas[fecha][sede] = {};
+      if (!agrupadas[fecha]) agrupadas[fecha] = { total_citas: 0, sedes: {} };
+      if (!agrupadas[fecha].sedes[sede]) agrupadas[fecha].sedes[sede] = {};
 
-      if (!agrupadas[fecha][sede][horario]) {
-        agrupadas[fecha][sede][horario] = {
+      if (!agrupadas[fecha].sedes[sede][horario]) {
+        agrupadas[fecha].sedes[sede][horario] = {
           total_citas: 0,
           citas: []
         };
       }
 
-      agrupadas[fecha][sede][horario].total_citas += 1;
-      agrupadas[fecha][sede][horario].citas.push(cita);
+      agrupadas[fecha].total_citas += 1; 
+      agrupadas[fecha].sedes[sede][horario].total_citas += 1;
+      agrupadas[fecha].sedes[sede][horario].citas.push(cita);
     });
 
-   
     const resultado = Object.keys(agrupadas).map(fecha => ({
       fecha_cita: fecha,
-      sedes: Object.keys(agrupadas[fecha]).map(sede => ({
+      total_citas: agrupadas[fecha].total_citas,
+      sedes: Object.keys(agrupadas[fecha].sedes).map(sede => ({
         sede,
-        horarios: Object.keys(agrupadas[fecha][sede]).map(horario => ({
+        horarios: Object.keys(agrupadas[fecha].sedes[sede]).map(horario => ({
           horario,
-          total_citas: agrupadas[fecha][sede][horario].total_citas,
-          citas: agrupadas[fecha][sede][horario].citas
+          total_citas: agrupadas[fecha].sedes[sede][horario].total_citas,
+          citas: agrupadas[fecha].sedes[sede][horario].citas
         }))
       }))
     }));
