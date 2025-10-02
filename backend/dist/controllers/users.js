@@ -67,7 +67,7 @@ const LoginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
             (hoy.getMonth() === fechaNac.getMonth() && hoy.getDate() < fechaNac.getDate())) {
             edad--;
         }
-        if (sexo !== "H" || edad < 40) {
+        if (sexo !== "H" || edad < 20) {
             return res.status(400).json({ msg: "Usuario no válido" });
         }
         user = yield users_1.default.findOne({

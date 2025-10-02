@@ -46,6 +46,7 @@ export class CitasComponent {
   fechaCitaEnvio: string = '';
   fechaFormateadaM: string = '';
   personaSeleccionada: any = null;
+  datosCita: any = null;
   modalRef: NgbModalRef;
   viewState: 'lista' | 'enviar-link' | 'atender' = 'lista';
   mostrarCalendario = false;
@@ -58,6 +59,8 @@ export class CitasComponent {
   horaSeleccionada2: number | null = null;
   sedeSeleccionada: number | null = null;
   sedesDisponibles2: Array<{ sede_id: number; sede_texto: string }> = [];
+  correoUsuario: string = '';
+  telefonoUsuario: string = '';
 
   public _citasService = inject(CitasService);
 
@@ -74,7 +77,8 @@ export class CitasComponent {
     this.currentUser = this._userService.currentUserValue;
      this._citasService.getcitaRFC(this.currentUser.rfc).subscribe({
       next: (response: any) => {
-         console.log()
+         console.log(response)
+         this.datosCita = response
          if(response.citas.length > 0){
             this.mostrarCalendario = true;
          }
@@ -103,14 +107,8 @@ export class CitasComponent {
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
-    events: [],
     locale: 'es',
-    // dateClick: this.onDateClick.bind(this),
     dateClick: this.onDateClick.bind(this),
-    dayCellDidMount: (info) => {
-      const today = new Date();
-      const cellDate = info.date;
-    },
     buttonText: {
       today: 'Hoy',
       month: 'Mes',
@@ -119,10 +117,24 @@ export class CitasComponent {
       list: 'Lista'
     },
     weekends: true,
-    editable: true,
+    editable: false,
     selectable: true,
     selectMirror: true,
-    dayMaxEvents: true
+    dayMaxEvents: true,
+
+    validRange: {
+      start: '2025-10-08',
+      end: '2025-10-11' 
+    },
+
+    dayCellDidMount: (info) => {
+      const dateStr = info.date.toISOString().split('T')[0];
+      if (dateStr !== '2025-10-08' && dateStr !== '2025-10-09' && dateStr !== '2025-10-10') {
+        info.el.style.backgroundColor = '#f8f9fa';
+        info.el.style.pointerEvents = 'none';
+        info.el.style.opacity = '0.3';
+      }
+    }
   };
 
   onDateClick(arg: DateClickArg): void {
@@ -167,15 +179,25 @@ export class CitasComponent {
 
   guardarSeleccion() {
     this.currentUser = this._userService.currentUserValue;
-    console.log('Hora:', this.horaSeleccionada2);
-    console.log('Sede:', this.sedeSeleccionada);
-    console.log('usuario:', this.currentUser.rfc);
+
+    if (!this.horaSeleccionada2 || !this.sedeSeleccionada || !this.correoUsuario || !this.telefonoUsuario) {
+      alert('Por favor completa todos los campos.');
+      return;
+    }
+
+    // Aquí ya tienes todos los datos capturados
+    console.log('Horario ID:', this.horaSeleccionada2);
+    console.log('Sede ID:', this.sedeSeleccionada);
+    console.log('Correo:', this.correoUsuario);
+    console.log('Teléfono:', this.telefonoUsuario);
 
     const datos = {
       fecha_cita: this.fechaCitaEnvio,
       horario_id: this.horaSeleccionada2,
       sede_id: this.sedeSeleccionada,
-      rfc: this.currentUser.rfc
+      rfc: this.currentUser.rfc,
+      correo: this.correoUsuario,
+      telefono: this.telefonoUsuario
     };
     console.log(datos)
 
@@ -185,10 +207,37 @@ export class CitasComponent {
           Swal.fire({
             position: 'center',
             icon: 'success',
-            title: "¡Exito!",
-            text: "Cita generada correctamente",
+            title: "¡Cita registrada!",
+            text: "Antes de acudir, descarga e imprime tu comprobante de cita.",
             showConfirmButton: false,
             timer: 5000
+          });
+          this._citasService.getcitaRFC(this.currentUser.rfc).subscribe({
+            next: (response: any) => {
+              console.log(response)
+              this.datosCita = response
+              if(response.citas.length > 0){
+                  this.mostrarCalendario = true;
+              }
+            },
+            error: (e: HttpErrorResponse) => {
+              if (e.status == 400) {
+                Swal.fire({
+                  position: 'center',
+                  icon: 'error',
+                  title: "¡Atención!",
+                  text: "Ya tienes una cita activa",
+                  showConfirmButton: false,
+                  timer: 5000
+                });
+                if (this.modalRef) {
+                  this.modalRef.close('');
+                }
+              } else {
+                const msg = e.error?.msg || 'Error desconocido';
+                console.error('Error del servidor:', msg);
+              }
+            }
           });
           this.mostrarCalendario = true;
           this.modalRef.close();   

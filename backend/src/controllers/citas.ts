@@ -101,14 +101,19 @@ if (cantidadCitas >= limite) {
   });
 }
 
-  const cita = await Cita.create({
-    horario_id: body.horario_id,
-    sede_id: body.sede_id,
-    rfc: body.rfc,
-    fecha_cita: body.fecha_cita,
-    correo: body.correo,
-    telefono: body.telefono,
-  });
+
+    const folio: number = Math.floor(10000000 + Math.random() * 90000000);
+
+    const cita = await Cita.create({
+      horario_id: body.horario_id,
+      sede_id: body.sede_id,
+      rfc: body.rfc,
+      fecha_cita: body.fecha_cita,
+      correo: body.correo,
+      telefono: body.telefono,
+      folio: folio
+    });
+
 
 
   
@@ -274,6 +279,7 @@ export const getCita = async (req: Request, res: Response): Promise<any> => {
         fecha_cita: cita.fecha_cita,
         correo: cita.correo,
         telefono: cita.telefono,
+        folio: cita.folio,
         sede: citaAny.Sede?.sede || "Desconocida",
         sede_id: citaAny.Sede?.id || null,
         horario_id: cita.horario_id,
@@ -291,7 +297,7 @@ export const getCita = async (req: Request, res: Response): Promise<any> => {
       ],
       raw: true
     });
-
+    
     return res.json({
       msg: "Cita obtenida",
       citas: citasConHorario,

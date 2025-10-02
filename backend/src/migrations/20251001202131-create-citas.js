@@ -33,6 +33,15 @@ module.exports = {
       fecha_cita: {
         type: Sequelize.DATEONLY
       },
+      correo: {
+        type: Sequelize.STRING
+      },
+      telefono: {
+        type: Sequelize.STRING
+      },
+      folio: {
+        type: Sequelize.STRING
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
