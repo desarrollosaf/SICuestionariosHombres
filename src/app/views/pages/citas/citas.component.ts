@@ -204,6 +204,33 @@ export class CitasComponent {
             showConfirmButton: false,
             timer: 5000
           });
+          this._citasService.getcitaRFC(this.currentUser.rfc).subscribe({
+            next: (response: any) => {
+              console.log(response)
+              this.datosCita = response
+              if(response.citas.length > 0){
+                  this.mostrarCalendario = true;
+              }
+            },
+            error: (e: HttpErrorResponse) => {
+              if (e.status == 400) {
+                Swal.fire({
+                  position: 'center',
+                  icon: 'error',
+                  title: "¡Atención!",
+                  text: "Ya tienes una cita activa",
+                  showConfirmButton: false,
+                  timer: 5000
+                });
+                if (this.modalRef) {
+                  this.modalRef.close('');
+                }
+              } else {
+                const msg = e.error?.msg || 'Error desconocido';
+                console.error('Error del servidor:', msg);
+              }
+            }
+          });
           this.mostrarCalendario = true;
           this.modalRef.close();   
         }
