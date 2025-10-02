@@ -180,7 +180,34 @@ export class CitasComponent {
     }
 
   guardarSeleccion() {
+
     this.currentUser = this._userService.currentUserValue;
+    const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!correoRegex.test(this.correoUsuario)) {
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: '¡Error!',
+        text: 'El correo electrónico no es válido.',
+        showConfirmButton: false,
+        timer: 5000
+      });
+      return;
+    }
+
+    const telefonoRegex = /^\d{10}$/;
+    if (!telefonoRegex.test(this.telefonoUsuario)) {
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: '¡Error!',
+        text: 'El teléfono debe contener exactamente 10 dígitos.',
+        showConfirmButton: false,
+        timer: 5000
+      });
+      return;
+    }
 
     if (this.correoUsuario !== this.correoConfirmado) {
       Swal.fire({
