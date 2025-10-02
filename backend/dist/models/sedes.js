@@ -24,4 +24,5 @@ Sede.init({
     tableName: 'sedes',
     timestamps: true,
 });
+// Sede.hasMany(Cita, { foreignKey: 'sede_id' });
 exports.default = Sede;

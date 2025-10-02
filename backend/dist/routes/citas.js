@@ -5,4 +5,6 @@ const citas_1 = require("../controllers/citas");
 const router = (0, express_1.Router)();
 router.get("/api/citas/gethorarios/:fecha", citas_1.getHorariosDisponibles);
 router.post("/api/citas/savecita/", citas_1.savecita);
+router.get("/api/citas/citasagrupadas/", citas_1.getcitasagrupadas);
+router.get("/api/citas/getcitaservidor/:id", citas_1.getCita);
 exports.default = router;

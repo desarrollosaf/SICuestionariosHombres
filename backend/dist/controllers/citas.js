@@ -12,10 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.savecita = exports.getHorariosDisponibles = void 0;
+exports.getCita = exports.getcitasagrupadas = exports.savecita = exports.getHorariosDisponibles = void 0;
 const citas_1 = __importDefault(require("../models/citas"));
 const horarios_citas_1 = __importDefault(require("../models/horarios_citas")); // ✅ corregido
 const sedes_1 = __importDefault(require("../models/sedes"));
+const s_usuario_1 = __importDefault(require("../models/saf/s_usuario"));
 const getHorariosDisponibles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { fecha } = req.params;
@@ -95,3 +96,120 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.savecita = savecita;
+const getcitasagrupadas = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // Traemos todas las citas junto con sede y horario
+        const citas = yield citas_1.default.findAll({
+            include: [
+                {
+                    model: sedes_1.default,
+                    as: "Sede",
+                    attributes: ["id", "sede"]
+                },
+                {
+                    model: horarios_citas_1.default,
+                    as: "HorarioCita",
+                    attributes: ["horario_inicio", "horario_fin"]
+                }
+            ],
+            order: [["fecha_cita", "ASC"], ["sede_id", "ASC"], ["horario_id", "ASC"]]
+        });
+        const agrupadas = {};
+        citas.forEach(cita => {
+            var _a;
+            const fecha = new Date(cita.fecha_cita).toISOString().split("T")[0];
+            const sede = ((_a = cita.Sede) === null || _a === void 0 ? void 0 : _a.sede) || "Desconocida";
+            const citaAny = cita;
+            const horario = citaAny.HorarioCita
+                ? `${citaAny.HorarioCita.horario_inicio} - ${citaAny.HorarioCita.horario_fin}`
+                : "Horario desconocido";
+            if (!agrupadas[fecha])
+                agrupadas[fecha] = {};
+            if (!agrupadas[fecha][sede])
+                agrupadas[fecha][sede] = {};
+            if (!agrupadas[fecha][sede][horario]) {
+                agrupadas[fecha][sede][horario] = {
+                    total_citas: 0,
+                    citas: []
+                };
+            }
+            agrupadas[fecha][sede][horario].total_citas += 1;
+            agrupadas[fecha][sede][horario].citas.push(cita);
+        });
+        const resultado = Object.keys(agrupadas).map(fecha => ({
+            fecha_cita: fecha,
+            sedes: Object.keys(agrupadas[fecha]).map(sede => ({
+                sede,
+                horarios: Object.keys(agrupadas[fecha][sede]).map(horario => ({
+                    horario,
+                    total_citas: agrupadas[fecha][sede][horario].total_citas,
+                    citas: agrupadas[fecha][sede][horario].citas
+                }))
+            }))
+        }));
+        return res.json({
+            msg: "Datos agrupados por fecha, sede y horario",
+            citas: resultado
+        });
+    }
+    catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: "Ocurrió un error al obtener los registros" });
+    }
+});
+exports.getcitasagrupadas = getcitasagrupadas;
+const getCita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params; // Este es el RFC
+    try {
+        // Traemos todas las citas asociadas al RFC
+        const citasser = yield citas_1.default.findAll({
+            where: { rfc: id },
+            include: [
+                {
+                    model: sedes_1.default,
+                    as: "Sede",
+                    attributes: ["id", "sede"]
+                },
+                {
+                    model: horarios_citas_1.default,
+                    as: "HorarioCita",
+                    attributes: ["horario_inicio", "horario_fin"]
+                }
+            ],
+            order: [["fecha_cita", "ASC"], ["horario_id", "ASC"]]
+        });
+        // Convertimos el resultado para incluir el rango horario
+        const citasConHorario = citasser.map(cita => {
+            var _a, _b;
+            const citaAny = cita; // Tipo flexible para TS
+            return {
+                id: cita.id,
+                rfc: cita.rfc,
+                fecha_cita: cita.fecha_cita,
+                sede: ((_a = citaAny.Sede) === null || _a === void 0 ? void 0 : _a.sede) || "Desconocida",
+                sede_id: ((_b = citaAny.Sede) === null || _b === void 0 ? void 0 : _b.id) || null,
+                horario_id: cita.horario_id,
+                horario: citaAny.HorarioCita
+                    ? `${citaAny.HorarioCita.horario_inicio} - ${citaAny.HorarioCita.horario_fin}`
+                    : "Horario desconocido"
+            };
+        });
+        const usuario = yield s_usuario_1.default.findAll({
+            where: { N_Usuario: id },
+            attributes: [
+                "Nombre",
+            ],
+            raw: true
+        });
+        return res.json({
+            msg: "Cita obtenida",
+            citas: citasConHorario,
+            datosUser: usuario
+        });
+    }
+    catch (error) {
+        console.error("Error al obtener citas:", error);
+        return res.status(500).json({ error: "Ocurrió un error al obtener los registros" });
+    }
+});
+exports.getCita = getCita;

@@ -39,6 +39,6 @@ Cita.init({
     timestamps: true,
 });
 // 👇 Asociaciones
-Cita.belongsTo(horarios_citas_1.default, { foreignKey: 'horario_id', as: 'horario' });
-Cita.belongsTo(sedes_1.default, { foreignKey: 'sede_id', as: 'sede' });
+Cita.belongsTo(horarios_citas_1.default, { foreignKey: "horario_id", as: "HorarioCita" });
+Cita.belongsTo(sedes_1.default, { foreignKey: 'sede_id', as: 'Sede' });
 exports.default = Cita;
