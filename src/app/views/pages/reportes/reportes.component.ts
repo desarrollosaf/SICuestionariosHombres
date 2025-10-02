@@ -122,12 +122,14 @@ export class ReportesComponent {
   }
 
   getAllCitas() {
-    /*this._citasService.groupCitas().subscribe({
+    this._citasService.groupCitas().subscribe({
       next: (response: any) => {
-
+        console.log(response.citas)
         if (response.citas.length > 0) {
+
           response.citas.forEach((cita: any) => {
-            const fechaHora = `${cita.fecha}T00:00:00`;
+            
+            const fechaHora = `${cita.fecha_cita}T00:00:00`;
             const nuevoEvento = {
               title: `Ver citas, total: ${cita.total_citas}`,
               start: fechaHora,
@@ -141,6 +143,7 @@ export class ReportesComponent {
             } else {
               this.calendarOptions.events = [nuevoEvento];
             }
+            console.log( this.calendarOptions.events)
           });
         }
       },
@@ -148,7 +151,7 @@ export class ReportesComponent {
         const msg = e.error?.msg || 'Error desconocido'; 1
         console.error('Error del servidor:', msg);
       }
-    });*/
+    });
   }
   // onDateClick(arg: DateClickArg) {
   //   const today = new Date();
@@ -198,9 +201,10 @@ export class ReportesComponent {
       month: 'long',
       year: 'numeric'
     });
-    
-    this._citasService.getCitas(this.fechaFormat).subscribe({
+    console.log(this.fechaFormat)
+    this._citasService.getCitasFecha(this.fechaFormat).subscribe({
       next: (response: any) => {
+        console.log(response)
         this.originalData = [...response.citas];
         this.temp = [...this.originalData];
         this.filteredCount = this.temp.length;

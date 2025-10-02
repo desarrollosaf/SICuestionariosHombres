@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import bcrypt from 'bcrypt'
 import  User  from '../models/saf/users'
 import  UserBase  from '../models/user'
+import  UsersSafs  from '../models/saf/s_usuario'
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import dotenv from 'dotenv';
 
@@ -39,7 +40,14 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
 
         user = await User.findOne({ 
             where: { rfc: rfc },
+            include: [
+                {
+                    model: UsersSafs,
+                    as: 'datos_user',
+                },
+            ],
         })
+        console.log(user.datos_user)
         if (!user) {
             return res.status(400).json({
                 msg: `Usuario no existe con el rfc ${rfc}`

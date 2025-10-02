@@ -12,11 +12,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCita = exports.getcitasagrupadas = exports.savecita = exports.getHorariosDisponibles = void 0;
+exports.getcitasFecha = exports.getCita = exports.getcitasagrupadas = exports.savecita = exports.getHorariosDisponibles = void 0;
 const citas_1 = __importDefault(require("../models/citas"));
 const horarios_citas_1 = __importDefault(require("../models/horarios_citas")); // ✅ corregido
 const sedes_1 = __importDefault(require("../models/sedes"));
+const sequelize_1 = require("sequelize");
+const sequelize_2 = require("sequelize");
 const s_usuario_1 = __importDefault(require("../models/saf/s_usuario"));
+const t_dependencia_1 = __importDefault(require("../models/saf/t_dependencia"));
+const t_direccion_1 = __importDefault(require("../models/saf/t_direccion"));
+const t_departamento_1 = __importDefault(require("../models/saf/t_departamento"));
+const dp_fum_datos_generales_1 = require("../models/fun/dp_fum_datos_generales");
+const dp_datospersonales_1 = require("../models/fun/dp_datospersonales");
+const fun_1 = __importDefault(require("../database/fun")); // La conexión
+dp_datospersonales_1.dp_datospersonales.initModel(fun_1.default);
+dp_fum_datos_generales_1.dp_fum_datos_generales.initModel(fun_1.default);
 const getHorariosDisponibles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { fecha } = req.params;
@@ -213,3 +223,88 @@ const getCita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getCita = getCita;
+const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        console.log(req.params);
+        const { fecha } = req.params;
+        const today = new Date();
+        const tomorrow = new Date();
+        tomorrow.setDate(today.getDate() + 1);
+        console.log(fecha);
+        const formatDate = (date) => date.toISOString().split('T')[0];
+        const citas = yield citas_1.default.findAll({
+            where: {
+                fecha_cita: {
+                    [sequelize_1.Op.eq]: fecha
+                }
+            },
+            order: [['fecha_cita', 'ASC']]
+        });
+        console.log(citas);
+        for (const cita of citas) {
+            if (cita.rfc) {
+                console.log('Buscando datos personales para:', cita.rfc);
+                const datos = yield dp_datospersonales_1.dp_datospersonales.findOne({
+                    where: { f_rfc: cita.rfc },
+                    attributes: [
+                        'correo_ins',
+                        'correo_per',
+                        'numero_tel',
+                        'numero_cel',
+                        [sequelize_2.Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo']
+                    ],
+                    raw: true
+                });
+                if (datos) {
+                    cita.setDataValue('datos_user', datos);
+                }
+            }
+        }
+        for (const cita of citas) {
+            if (cita.rfc) {
+                console.log('Buscando datos personales para:', cita.rfc);
+                const datos = yield s_usuario_1.default.findOne({
+                    where: { N_Usuario: cita.rfc },
+                    attributes: [
+                        'N_Usuario',
+                    ],
+                    include: [
+                        {
+                            model: t_dependencia_1.default,
+                            as: 'dependencia',
+                            attributes: [
+                                'nombre_completo',
+                            ],
+                        },
+                        {
+                            model: t_direccion_1.default,
+                            as: 'direccion',
+                            attributes: [
+                                'nombre_completo',
+                            ],
+                        },
+                        {
+                            model: t_departamento_1.default,
+                            as: 'departamento',
+                            attributes: [
+                                'nombre_completo',
+                            ],
+                        },
+                    ],
+                });
+                if (datos) {
+                    cita.setDataValue('dependencia', datos);
+                }
+            }
+        }
+        return res.json({
+            msg: `si existe el servidor`,
+            citas: citas,
+        });
+    }
+    catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Ocurrió un error al obtener los registros' });
+    }
+});
+exports.getcitasFecha = getcitasFecha;

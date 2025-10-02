@@ -16,6 +16,7 @@ exports.cerrarsesion = exports.getCurrentUser = exports.LoginUser = exports.Read
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const users_1 = __importDefault(require("../models/saf/users"));
 const user_1 = __importDefault(require("../models/user"));
+const s_usuario_1 = __importDefault(require("../models/saf/s_usuario"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const ReadUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const listUser = yield users_1.default.findAll();
@@ -46,7 +47,14 @@ const LoginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
     else {
         user = yield users_1.default.findOne({
             where: { rfc: rfc },
+            include: [
+                {
+                    model: s_usuario_1.default,
+                    as: 'datos_user',
+                },
+            ],
         });
+        console.log(user.datos_user);
         if (!user) {
             return res.status(400).json({
                 msg: `Usuario no existe con el rfc ${rfc}`
