@@ -12,6 +12,7 @@ class Cita extends Model {
   declare correo: string;
   declare telefono: string;
   declare folio: string;
+  declare path: string | null;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -48,6 +49,10 @@ Cita.init(
       allowNull: true,
     },
     folio: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    path: {
       type: DataTypes.STRING,
       allowNull: true,
     },
