@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.savecuestionario = exports.getHorariosDisponibles = void 0;
+exports.savecita = exports.getHorariosDisponibles = void 0;
 const citas_1 = __importDefault(require("../models/citas"));
 const horarios_citas_1 = __importDefault(require("../models/horarios_citas")); // ✅ corregido
 const sedes_1 = __importDefault(require("../models/sedes"));
@@ -52,17 +52,41 @@ const getHorariosDisponibles = (req, res) => __awaiter(void 0, void 0, void 0, f
     }
 });
 exports.getHorariosDisponibles = getHorariosDisponibles;
-const savecuestionario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { body } = req;
+        const limite = 3;
+        // const citaExistente = await Cita.findOne({
+        //   where: { rfc: body.rfc }
+        // });
+        // if (citaExistente) {
+        //   return res.status(400).json({
+        //     status: 400,
+        //     msg: "Ya existe una cita registrada con ese RFC"
+        //   });
+        // }
+        const cantidadCitas = yield citas_1.default.count({
+            where: {
+                horario_id: body.horario_id,
+                sede_id: body.sede_id,
+                fecha_cita: body.fecha_cita
+            }
+        });
+        if (cantidadCitas >= limite) {
+            return res.status(400).json({
+                status: 400,
+                msg: "Este horario ya está ocupado para la fecha y sede seleccionada"
+            });
+        }
         const cita = yield citas_1.default.create({
-            "horario_id": body.horario_id,
-            "sede_id": body.sede_id,
-            "rfc": body.rfc,
-            "fecha_cita": body.fecha_cita,
+            horario_id: body.horario_id,
+            sede_id: body.sede_id,
+            rfc: body.rfc,
+            fecha_cita: body.fecha_cita,
         });
         return res.json({
-            status: 200
+            status: 200,
+            msg: "Cita registrada correctamente",
         });
     }
     catch (error) {
@@ -70,4 +94,4 @@ const savecuestionario = (req, res) => __awaiter(void 0, void 0, void 0, functio
         return res.status(500).json({ msg: 'Error interno del servidor' });
     }
 });
-exports.savecuestionario = savecuestionario;
+exports.savecita = savecita;

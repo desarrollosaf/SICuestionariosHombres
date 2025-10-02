@@ -54,20 +54,52 @@ export const getHorariosDisponibles = async (req: Request, res: Response): Promi
 
 
 
-export const savecuestionario = async (req: Request, res: Response): Promise<any> => {
-    try {
-        const { body } = req
-             const cita = await Cita.create({
-                "horario_id": body.horario_id,
-                "sede_id": body.sede_id,
-                "rfc": body.rfc,
-                "fecha_cita": body.fecha_cita,
-            });
-            return res.json({
-                status: 200
-            });
-    } catch (error) {
-        console.error('Error al guardar la cita:', error);
-        return res.status(500).json({ msg: 'Error interno del servidor' });
+export const savecita = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { body } = req;
+    const limite = 3;
+
+    
+    // const citaExistente = await Cita.findOne({
+    //   where: { rfc: body.rfc }
+    // });
+
+    // if (citaExistente) {
+    //   return res.status(400).json({
+    //     status: 400,
+    //     msg: "Ya existe una cita registrada con ese RFC"
+    //   });
+    // }
+
+    const cantidadCitas = await Cita.count({
+      where: {
+        horario_id: body.horario_id,
+        sede_id: body.sede_id,
+        fecha_cita: body.fecha_cita
+      }
+    });
+
+    if (cantidadCitas >= limite) {
+      return res.status(400).json({
+        status: 400,
+        msg: "Este horario ya está ocupado para la fecha y sede seleccionada"
+      });
     }
-}
+
+    const cita = await Cita.create({
+      horario_id: body.horario_id,
+      sede_id: body.sede_id,
+      rfc: body.rfc,
+      fecha_cita: body.fecha_cita,
+    });
+
+    return res.json({
+      status: 200,
+      msg: "Cita registrada correctamente",
+    });
+
+  } catch (error) {
+    console.error('Error al guardar la cita:', error);
+    return res.status(500).json({ msg: 'Error interno del servidor' });
+  }
+};
