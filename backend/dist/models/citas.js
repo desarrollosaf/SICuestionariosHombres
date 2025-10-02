@@ -43,6 +43,10 @@ Cita.init({
         type: sequelize_1.DataTypes.STRING,
         allowNull: true,
     },
+    path: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
     createdAt: sequelize_1.DataTypes.DATE,
     updatedAt: sequelize_1.DataTypes.DATE,
 }, {
