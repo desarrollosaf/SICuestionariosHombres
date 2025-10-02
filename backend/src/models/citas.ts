@@ -71,3 +71,4 @@ Cita.belongsTo(HorarioCita, { foreignKey: "horario_id", as: "HorarioCita" });
 Cita.belongsTo(Sede, { foreignKey: 'sede_id', as: 'Sede' });
 
 export default Cita;
+
