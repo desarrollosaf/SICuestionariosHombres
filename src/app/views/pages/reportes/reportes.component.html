@@ -74,9 +74,9 @@
                     <div class="card-body" *ngIf="isVisible(horario.key)">
                         <div *ngIf="horario.value.length > 0; else sinCitas">
                         <div *ngFor="let cita of horario.value" class="border rounded p-2 mb-2">
-                            <p><strong>RFC:</strong> {{ cita.rfc }}</p>
-                            <p><strong>Fecha:</strong> {{ cita.fecha_cita | date:'shortDate' }}</p>
-                            <p><strong>Sede ID:</strong> {{ cita.sede_id }}</p>
+                            <p><strong>Nombre:</strong> {{ cita.datos_user.nombre_completo }}</p>
+                            <p><strong>Contacto:</strong> {{ cita.correo  }} | {{ cita.telefono }}</p>
+                            <p><strong>Sede:</strong> {{ cita.Sede.sede }}</p>
                         </div>
                         </div>
                         <ng-template #sinCitas>
