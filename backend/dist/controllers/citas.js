@@ -89,6 +89,7 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 msg: "Este horario ya está ocupado para la fecha y sede seleccionada"
             });
         }
+        const folio = Math.floor(10000000 + Math.random() * 90000000);
         const cita = yield citas_1.default.create({
             horario_id: body.horario_id,
             sede_id: body.sede_id,
@@ -96,6 +97,7 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             fecha_cita: body.fecha_cita,
             correo: body.correo,
             telefono: body.telefono,
+            folio: folio
         });
         return res.json({
             status: 200,
@@ -201,6 +203,7 @@ const getCita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 fecha_cita: cita.fecha_cita,
                 correo: cita.correo,
                 telefono: cita.telefono,
+                folio: cita.folio,
                 sede: ((_a = citaAny.Sede) === null || _a === void 0 ? void 0 : _a.sede) || "Desconocida",
                 sede_id: ((_b = citaAny.Sede) === null || _b === void 0 ? void 0 : _b.id) || null,
                 horario_id: cita.horario_id,
