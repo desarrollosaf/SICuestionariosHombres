@@ -31,6 +31,14 @@ Cita.init({
         type: sequelize_1.DataTypes.DATEONLY,
         allowNull: false,
     },
+    correo: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
+    telefono: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
     createdAt: sequelize_1.DataTypes.DATE,
     updatedAt: sequelize_1.DataTypes.DATE,
 }, {

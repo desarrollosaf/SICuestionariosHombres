@@ -9,6 +9,8 @@ class Cita extends Model {
   declare sede_id: ForeignKey<number>;
   declare rfc: string | null;
   declare fecha_cita: string;
+  declare correo: string;
+  declare telefono: string;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -35,6 +37,14 @@ Cita.init(
     fecha_cita: {
       type: DataTypes.DATEONLY,
       allowNull: false,
+    },
+    correo: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    telefono: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
