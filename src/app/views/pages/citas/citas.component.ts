@@ -60,7 +60,9 @@ export class CitasComponent {
   sedeSeleccionada: number | null = null;
   sedesDisponibles2: Array<{ sede_id: number; sede_texto: string }> = [];
   correoUsuario: string = '';
+  correoConfirmado: string = '';
   telefonoUsuario: string = '';
+  telefonoConfirmado: string = '';
 
   public _citasService = inject(CitasService);
 
@@ -180,8 +182,27 @@ export class CitasComponent {
   guardarSeleccion() {
     this.currentUser = this._userService.currentUserValue;
 
-    if (!this.horaSeleccionada2 || !this.sedeSeleccionada || !this.correoUsuario || !this.telefonoUsuario) {
-      alert('Por favor completa todos los campos.');
+    if (this.correoUsuario !== this.correoConfirmado) {
+      Swal.fire({
+            position: 'center',
+            icon: 'error',
+            title: "¡Error!",
+            text: "Los correos no coinciden.",
+            showConfirmButton: false,
+            timer: 5000
+          });
+      return;
+    }
+
+    if (this.telefonoUsuario !== this.telefonoConfirmado) {
+      Swal.fire({
+            position: 'center',
+            icon: 'error',
+            title: "¡Error!",
+            text: "Los teléfonos no coinciden.",
+            showConfirmButton: false,
+            timer: 5000
+          });
       return;
     }
 

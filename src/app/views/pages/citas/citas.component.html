@@ -92,77 +92,117 @@
                     <h5 class="modal-title" id="exampleModalLabel"></h5>
                     <button type="button" class="btn-close" (click)="modal.close('by: close icon')" aria-label="Close"></button>
                 </div>
+               
                 <div class="modal-body w-100">
                     <div class="p-2 text-white text-muted bg-light">
                         <strong>Horario disponibles</strong>
                         
                     </div>
                     <br>
-                    
+                     <!-- Indicaciones -->
+<div class="mb-4">
+  <h6 class="fw-bold">Indicaciones para la entrega de la muestra</h6>
+  <p>
+    Antes de seleccionar la hora de su cita, considere que la muestra de orina debe ser entregada en la sede seleccionada en un plazo no mayor a dos horas después de su recolección.
+  </p>
+</div>
 
-                    <div class="row">
-                        <div class="mb-3">
-                        <label for="hora" class="form-label">Horario</label>
-                        <select
-                            id="hora"
-                            class="form-select"
-                            [(ngModel)]="horaSeleccionada2"
-                            name="hora"
-                            (change)="onHoraChange()"
-                        >
-                            <option [ngValue]="null" disabled selected>-- Selecciona un horario --</option>
-                            <option *ngFor="let horario of horarios" [ngValue]="horario.horario_id">
-                            {{ horario.horario_texto }}
-                            </option>
-                        </select>
-                        </div>
+<!-- Formulario en filas de 2 columnas -->
+<div class="row">
+  <!-- Horario -->
+  <div class="col-md-6 mb-3">
+    <label for="hora" class="form-label">Horario</label>
+    <select
+      id="hora"
+      class="form-select"
+      [(ngModel)]="horaSeleccionada2"
+      name="hora"
+      (change)="onHoraChange()"
+    >
+      <option [ngValue]="null" disabled selected>-- Selecciona un horario --</option>
+      <option *ngFor="let horario of horarios" [ngValue]="horario.horario_id">
+        {{ horario.horario_texto }}
+      </option>
+    </select>
+  </div>
 
-                        <!-- Selección de sede -->
-                        <div class="mb-3" *ngIf="sedesDisponibles2.length > 0">
-                        <label for="sede" class="form-label">Sede</label>
-                        <select
-                            id="sede"
-                            class="form-select"
-                            [(ngModel)]="sedeSeleccionada"
-                            name="sede"
-                        >
-                            <option [ngValue]="null" disabled selected>-- Selecciona una sede --</option>
-                            <option *ngFor="let sede of sedesDisponibles2" [ngValue]="sede.sede_id">
-                            {{ sede.sede_texto }}
-                            </option>
-                        </select>
-                        </div>
+  <!-- Sede -->
+  <div class="col-md-6 mb-3" *ngIf="sedesDisponibles2.length > 0">
+    <label for="sede" class="form-label">Sede</label>
+    <select
+      id="sede"
+      class="form-select"
+      [(ngModel)]="sedeSeleccionada"
+      name="sede"
+    >
+      <option [ngValue]="null" disabled selected>-- Selecciona una sede --</option>
+      <option *ngFor="let sede of sedesDisponibles2" [ngValue]="sede.sede_id">
+        {{ sede.sede_texto }}
+      </option>
+    </select>
+  </div>
 
-                        <div class="mb-3">
-                            <label for="correo" class="form-label">Correo electrónico</label>
-                            <input
-                            id="correo"
-                            type="email"
-                            class="form-control"
-                            [(ngModel)]="correoUsuario"
-                            name="correo"
-                            placeholder="ejemplo@dominio.com"
-                            required
-                            />
-                        </div>
+  <!-- Correo -->
+  <div class="col-md-6 mb-3">
+    <label for="correo" class="form-label">Correo electrónico</label>
+    <input
+      id="correo"
+      type="email"
+      class="form-control"
+      [(ngModel)]="correoUsuario"
+      name="correo"
+      placeholder="ejemplo@dominio.com"
+      required
+    />
+  </div>
 
-                        <!-- Teléfono -->
-                        <div class="mb-3">
-                            <label for="telefono" class="form-label">Teléfono</label>
-                            <input
-                            id="telefono"
-                            type="number"
-                            class="form-control"
-                            [(ngModel)]="telefonoUsuario"
-                            name="telefono"
-                            pattern="[0-9]{10}"
-                            placeholder="10 dígitos"
-                            maxlength="10"
-                            required
-                            />
-                        </div>
+  <!-- Confirmar correo -->
+  <div class="col-md-6 mb-3">
+    <label for="confirmarCorreo" class="form-label">Confirmar correo electrónico</label>
+    <input
+      id="confirmarCorreo"
+      type="email"
+      class="form-control"
+      [(ngModel)]="correoConfirmado"
+      name="correoConfirmado"
+      placeholder="ejemplo@dominio.com"
+      required
+    />
+  </div>
 
-                    </div>
+  <!-- Teléfono -->
+  <div class="col-md-6 mb-3">
+    <label for="telefono" class="form-label">Teléfono</label>
+    <input
+      id="telefono"
+      type="tel"
+      class="form-control"
+      [(ngModel)]="telefonoUsuario"
+      name="telefono"
+      pattern="[0-9]{10}"
+      placeholder="10 dígitos"
+      maxlength="10"
+      required
+    />
+  </div>
+
+  <!-- Confirmar teléfono -->
+  <div class="col-md-6 mb-3">
+    <label for="confirmarTelefono" class="form-label">Confirmar teléfono</label>
+    <input
+      id="confirmarTelefono"
+      type="tel"
+      class="form-control"
+      [(ngModel)]="telefonoConfirmado"
+      name="telefonoConfirmado"
+      pattern="[0-9]{10}"
+      placeholder="10 dígitos"
+      maxlength="10"
+      required
+    />
+  </div>
+</div>
+
 
 
                     <button
