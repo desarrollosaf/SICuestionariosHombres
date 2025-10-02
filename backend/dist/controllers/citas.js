@@ -102,7 +102,8 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             fecha_cita: body.fecha_cita,
             correo: body.correo,
             telefono: body.telefono,
-            folio: folio
+            folio: folio,
+            path: '1'
         });
         const horarios = yield horarios_citas_1.default.findOne({
             where: { id: body.horario_id }
@@ -365,14 +366,14 @@ function generarPDFBuffer(data) {
             const fileName = `acuse_${data.folio}.pdf`;
             const filePath = path_1.default.join(pdfDir, fileName);
             const relativePath = path_1.default.join("storage", "public", "pdfs", fileName);
+            console.log(relativePath);
             const writeStream = fs_1.default.createWriteStream(filePath);
             doc.pipe(writeStream);
             doc.on("data", (chunk) => chunks.push(chunk));
             doc.on("end", () => __awaiter(this, void 0, void 0, function* () {
                 try {
                     // Guardar la ruta del PDF en la tabla citas
-                    yield citas_1.default.update({ path: relativePath }, // columna donde guardas la ruta
-                    { where: { id: data.citaId } });
+                    yield citas_1.default.update({ path: relativePath }, { where: { id: data.citaId } });
                     resolve(Buffer.concat(chunks));
                 }
                 catch (error) {

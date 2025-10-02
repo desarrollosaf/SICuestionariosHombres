@@ -111,7 +111,8 @@ if (cantidadCitas >= limite) {
       fecha_cita: body.fecha_cita,
       correo: body.correo,
       telefono: body.telefono,
-      folio: folio
+      folio: folio,
+      path: '1'
     });
 
 
@@ -424,7 +425,7 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
     const fileName = `acuse_${data.folio}.pdf`;
     const filePath = path.join(pdfDir, fileName);
     const relativePath = path.join("storage", "public", "pdfs", fileName);
-
+    console.log(relativePath)
     const writeStream = fs.createWriteStream(filePath);
     doc.pipe(writeStream);
 
@@ -433,9 +434,10 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
       try {
         // Guardar la ruta del PDF en la tabla citas
         await Cita.update(
-          { path: relativePath }, // columna donde guardas la ruta
+          { path: relativePath },
           { where: { id: data.citaId } }
         );
+
 
         resolve(Buffer.concat(chunks));
       } catch (error) {
