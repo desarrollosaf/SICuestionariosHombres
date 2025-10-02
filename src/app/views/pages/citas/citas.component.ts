@@ -46,6 +46,7 @@ export class CitasComponent {
   fechaCitaEnvio: string = '';
   fechaFormateadaM: string = '';
   personaSeleccionada: any = null;
+  datosCita: any = null;
   modalRef: NgbModalRef;
   viewState: 'lista' | 'enviar-link' | 'atender' = 'lista';
   mostrarCalendario = false;
@@ -58,6 +59,8 @@ export class CitasComponent {
   horaSeleccionada2: number | null = null;
   sedeSeleccionada: number | null = null;
   sedesDisponibles2: Array<{ sede_id: number; sede_texto: string }> = [];
+  correoUsuario: string = '';
+  telefonoUsuario: string = '';
 
   public _citasService = inject(CitasService);
 
@@ -74,7 +77,8 @@ export class CitasComponent {
     this.currentUser = this._userService.currentUserValue;
      this._citasService.getcitaRFC(this.currentUser.rfc).subscribe({
       next: (response: any) => {
-         console.log()
+         console.log(response)
+         this.datosCita = response
          if(response.citas.length > 0){
             this.mostrarCalendario = true;
          }
@@ -167,15 +171,25 @@ export class CitasComponent {
 
   guardarSeleccion() {
     this.currentUser = this._userService.currentUserValue;
-    console.log('Hora:', this.horaSeleccionada2);
-    console.log('Sede:', this.sedeSeleccionada);
-    console.log('usuario:', this.currentUser.rfc);
+
+    if (!this.horaSeleccionada2 || !this.sedeSeleccionada || !this.correoUsuario || !this.telefonoUsuario) {
+      alert('Por favor completa todos los campos.');
+      return;
+    }
+
+    // Aquí ya tienes todos los datos capturados
+    console.log('Horario ID:', this.horaSeleccionada2);
+    console.log('Sede ID:', this.sedeSeleccionada);
+    console.log('Correo:', this.correoUsuario);
+    console.log('Teléfono:', this.telefonoUsuario);
 
     const datos = {
       fecha_cita: this.fechaCitaEnvio,
       horario_id: this.horaSeleccionada2,
       sede_id: this.sedeSeleccionada,
-      rfc: this.currentUser.rfc
+      rfc: this.currentUser.rfc,
+      correo: this.correoUsuario,
+      telefono: this.telefonoUsuario
     };
     console.log(datos)
 
@@ -185,8 +199,8 @@ export class CitasComponent {
           Swal.fire({
             position: 'center',
             icon: 'success',
-            title: "¡Exito!",
-            text: "Cita generada correctamente",
+            title: "¡Cita registrada!",
+            text: "Antes de acudir, descarga e imprime tu comprobante de cita.",
             showConfirmButton: false,
             timer: 5000
           });
