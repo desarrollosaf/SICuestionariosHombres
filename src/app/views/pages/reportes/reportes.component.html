@@ -59,58 +59,35 @@
         </div>
         <br>
         @if (viewState === 'lista') {
-            <div class="table-responsive">
-                <!-- <div class="row align-items-center mb-3">
-                    <div class="col-xl-3 col-md-4">
-                        <input type="text" class="form-control form-control-sm" placeholder="Buscar..."
-                            (input)="updateFilter($event)" />
+            <div *ngIf="data?.horarios as horarios">
+                <div *ngFor="let horario of horarios | keyvalue">
+                    
+                    <div class="card mb-2">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <strong>{{ horario.key }}</strong>
+                        <span class="text-muted">({{ horario.value.length }} citas)</span>
+                        <button class="btn btn-sm btn-outline-primary" (click)="toggleHorario(horario.key)">
+                        {{ isVisible(horario.key) ? 'Ocultar' : 'Ver' }}
+                        </button>
                     </div>
-                </div> -->
-                <div *ngIf="rows.length === 0 && !loading" class="text-center my-3">
-                    <p><strong>No hay datos para mostrar</strong></p>
-                </div>
-                <ngx-datatable #table class="bootstrap" [rows]="rows" [columnMode]="'force'" [headerHeight]="50"
-                    *ngIf="rows.length > 0" [footerHeight]="50" [rowHeight]="'auto'" [limit]="pageSize"
-                    [count]="filteredCount" [offset]="page" (page)="setPage($event)" [loadingIndicator]="loading">
-                    <ngx-datatable-column [headerClass]="'text-center'" [cellClass]="'text-center'" name="Nombre completo">
-                        <ng-template let-row="row" ngx-datatable-cell-template>
-                            {{ row.datos_user.nombre_completo}}
-                        </ng-template>
-                    </ngx-datatable-column>
-                    <ngx-datatable-column [headerClass]="'text-center'" [cellClass]="'text-center'" name="Correo">
-                        <ng-template let-row="row" ngx-datatable-cell-template>
-                            <p><strong></strong>{{ row.datos_user.correo_per}}</p>
-                        </ng-template>
-                    </ngx-datatable-column>
-                    <ngx-datatable-column [headerClass]="'text-center'" [cellClass]="'text-center'"
-                        name="Correo/Telefono(s)">
-                        <ng-template let-row="row" ngx-datatable-cell-template>
-                            <p><strong>Télefono: </strong>{{ row.datos_user.numero_tel }}</p>
-                            <p><strong>Celular: </strong>{{ row.datos_user.numero_cel }}</p>
-                        </ng-template>
-                    </ngx-datatable-column>
-                    <ngx-datatable-column [headerClass]="'text-center'" [cellClass]="'text-center'" name="Dependencia">
-                        <ng-template let-row="row" ngx-datatable-cell-template>
-                            {{ row.dependencia.dependencia.nombre_completo }}
-                        </ng-template>
-                    </ngx-datatable-column>
-                    <ngx-datatable-column [headerClass]="'text-center'" [cellClass]="'text-center'" name="Opciones">
 
-                        <ng-template let-row="row" ngx-datatable-cell-template>
-                            <div class="d-flex justify-content-center gap-2">
-                                <button class="btn btn-sm btn-primary" placement="end" ngbTooltip="Enviar Link"
-                                    (click)="verEnviarLink(row)">
-                                    <i class="feather icon-link"></i>
-                                </button>
-                                <button class="btn btn-sm btn-primary" [disabled]="row.estatus === 1" placement="start"
-                                    ngbTooltip="Marcar como atendido" (click)="sendAtendido(row)">
-                                    <i class="feather icon-check"></i>
-                                </button>
-                            </div>
+                    <div class="card-body" *ngIf="isVisible(horario.key)">
+                        <div *ngIf="horario.value.length > 0; else sinCitas">
+                        <div *ngFor="let cita of horario.value" class="border rounded p-2 mb-2">
+                            <p><strong>RFC:</strong> {{ cita.rfc }}</p>
+                            <p><strong>Fecha:</strong> {{ cita.fecha_cita | date:'shortDate' }}</p>
+                            <p><strong>Sede ID:</strong> {{ cita.sede_id }}</p>
+                        </div>
+                        </div>
+                        <ng-template #sinCitas>
+                        <p class="text-muted">Sin datos</p>
                         </ng-template>
-                    </ngx-datatable-column>
-                </ngx-datatable>
+                    </div>
+                    </div>
+
+                </div>
             </div>
+
         }@else if (viewState === 'enviar-link') {
             <div>
                 <h5>Enviar link de reunión a: {{ selectedRow?.datos_user?.nombre_completo }}</h5>

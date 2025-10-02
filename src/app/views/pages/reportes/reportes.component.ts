@@ -15,11 +15,13 @@ import { FullCalendarModule } from '@fullcalendar/angular';
 import { CalendarOptions } from '@fullcalendar/core'; // useful for typechecking
 import dayGridPlugin from '@fullcalendar/daygrid';
 import { UserService } from '../../../core/services/user.service';
+import { NgbAccordionModule } from '@ng-bootstrap/ng-bootstrap';
+import { ChartData, ChartConfiguration } from 'chart.js';
 
 @Component({
   selector: 'app-detalle-citas',
   imports: [NgxDatatableModule, CommonModule, RouterModule, FormsModule,
-    ReactiveFormsModule, NgbTooltipModule, FullCalendarModule],
+    ReactiveFormsModule, NgbTooltipModule, FullCalendarModule, NgbAccordionModule,],
   templateUrl: './reportes.component.html',
   styleUrl: './reportes.component.scss'
 })
@@ -36,6 +38,23 @@ export class ReportesComponent {
   loading: boolean = true;
   personaSeleccionada: any = null;
   modalRef: NgbModalRef;
+  accordionOpen = true;
+  data: { horarios: Record<string, any[]> } = { horarios: {} };
+  chartOptions: ChartConfiguration['options'] = {
+    responsive: true,
+    animation: {
+      duration: 0
+    },
+    plugins: {
+      legend: { display: false }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { precision: 0 }
+      }
+    }
+  };
 
   formCitas: FormGroup;
   showModal = false;
@@ -56,6 +75,8 @@ export class ReportesComponent {
   selectedRow: any = null;
   tpendientes: any;
   tatendidos: any;
+  visibleHorarios: { [key: string]: boolean } = {};
+
   @ViewChild('table') table: DatatableComponent;
   @ViewChild('fullcalendar') calendarComponent: FullCalendarComponent;
   @ViewChild('xlModal', { static: true }) xlModal!: TemplateRef<any>;
@@ -131,7 +152,8 @@ export class ReportesComponent {
         if (response.citas.length > 0) {
 
           response.citas.forEach((cita: any) => {
-            
+            console.log(cita)
+            //const totalDia = cita.sedes.horarios.
             const fechaHora = `${cita.fecha_cita}T00:00:00`;
             const nuevoEvento = {
               title: `Ver citas, total: ${cita.total_citas}`,
@@ -189,44 +211,65 @@ export class ReportesComponent {
 
 
   onEventClick(arg: any): void {
-    const evento = arg.event;
-    const today = new Date();
-    const clickedDate = evento.start;
-    this.selectedDate = evento.start;
-    this.fechaSeleccionada = evento.start;
-    const year = clickedDate.getFullYear();
-    const month = String(clickedDate.getMonth() + 1).padStart(2, '0'); // Mes va de 0 a 11
-    const day = String(clickedDate.getDate()).padStart(2, '0');
-    this.rfcUser = this._userService.currentUserValue?.rfc
+  const evento = arg.event;
+  const clickedDate = evento.start;
+  this.selectedDate = clickedDate;
+  this.fechaSeleccionada = clickedDate;
 
-    this.fechaFormat = `${year}-${month}-${day}`;
-    this.fechaFormateadaM = this.fechaSeleccionada.toLocaleDateString('es-MX', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-    console.log(this.fechaFormat)
-    this._citasService.getCitasFecha(this.fechaFormat,this.rfcUser).subscribe({
-      next: (response: any) => {
-        console.log(response)
-        this.originalData = [...response.citas];
-        this.temp = [...this.originalData];
-        this.filteredCount = this.temp.length;
-        this.setPage({ offset: 0 });
-        this.loading = false;
-      },
-      error: (e: HttpErrorResponse) => {
-        const msg = e.error?.msg || 'Error desconocido'; 1
-        console.error('Error del servidor:', msg);
-      }
-    });
-    this.abrirModal(1)
-  }
+  const year = clickedDate.getFullYear();
+  const month = String(clickedDate.getMonth() + 1).padStart(2, '0');
+  const day = String(clickedDate.getDate()).padStart(2, '0');
+  this.fechaFormat = `${year}-${month}-${day}`;
+
+  this.fechaFormateadaM = clickedDate.toLocaleDateString('es-MX', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+
+  this.rfcUser = this._userService.currentUserValue?.rfc;
+
+
+  this.loading = true;
+
+  this._citasService.getCitasFecha(this.fechaFormat, this.rfcUser).subscribe({
+    next: (response: any) => {
+      console.log('horarios citas:', response);
+      this.data = {
+        horarios: response.horarios
+      };
+      console.log(this.data)
+
+    },
+    error: (e: HttpErrorResponse) => {
+      const msg = e.error?.msg || 'Error desconocido';
+      console.error('Error del servidor:', msg);
+      this.loading = false;
+    }
+  });
+
+  this.abrirModal(1);
+}
+
 
   verEnviarLink(row: any) {
     this.selectedRow = row;
     this.viewState = 'enviar-link';
   }
+
+
+
+
+  toggleHorario(horario: string): void {
+    this.visibleHorarios[horario] = !this.visibleHorarios[horario];
+  }
+
+  isVisible(horario: string): boolean {
+    return !!this.visibleHorarios[horario];
+  }
+
+
+
 
   setPage(pageInfo: any) {
     this.page = pageInfo.offset;
