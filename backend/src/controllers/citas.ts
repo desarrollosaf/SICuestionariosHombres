@@ -152,7 +152,7 @@ if (Validacion.f_fecha_nacimiento) {
 }
 
   const pdfBuffer = await generarPDFBuffer({
-    folio: cita.id.toString(),
+    folio: cita.folio,
     nombreCompleto: nombreCompleto,
     sexo: sexo,
     edad: edad,
@@ -423,6 +423,7 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
 
     const fileName = `acuse_${data.folio}.pdf`;
     const filePath = path.join(pdfDir, fileName);
+    const relativePath = path.join("storage", "public", "pdfs", fileName);
 
     const writeStream = fs.createWriteStream(filePath);
     doc.pipe(writeStream);
@@ -432,7 +433,7 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
       try {
         // Guardar la ruta del PDF en la tabla citas
         await Cita.update(
-          { path: filePath }, // columna donde guardas la ruta
+          { path: relativePath }, // columna donde guardas la ruta
           { where: { id: data.citaId } }
         );
 
@@ -450,15 +451,21 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
     });
 
     doc.moveDown(5);
-    doc.fontSize(18).font("Helvetica-Bold").text("CAMPAÑA GRATUITA DE SALUD MASCULINA", {
-      align: "center",
-      underline: true,
-    });
+    doc
+  .fontSize(18)
+  .font("Helvetica-Bold")
+  .fillColor("#7d0037") // ✅ Aplica el color
+  .text("CAMPAÑA GRATUITA DE SALUD MASCULINA", {
+    align: "center",
+  })
+  .fillColor("black");
 
     doc.moveDown(2);
+    doc.font("Helvetica").fontSize(12).text(`Folio: ${data.folio}`, { align: "right" });
+    doc.font("Helvetica").fontSize(12).text(`Fecha: ${data.fecha}`, { align: "right" });
     doc.fontSize(12)
       .font("Helvetica")
-      .text(`Paciente: ${data.nombreCompleto} | ${data.sexo} | ${data.edad}`, { align: "left" })
+      .text(`Paciente: ${data.nombreCompleto} | Masculino | ${data.edad}`, { align: "left" })
       .text(`CURP: ${data.curp}`, { align: "left" })
       .text(`Correo electrónico: ${data.correo} | Teléfono: ${data.telefono}`, { align: "left" })
       .text(`Ubicación: ${data.sede}`, { align: "left" })
