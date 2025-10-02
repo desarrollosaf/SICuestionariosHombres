@@ -31,7 +31,7 @@ const LoginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
     let passwordValid = false;
     let user = null;
     let bandera = true;
-    if (rfc.startsWith('CH')) {
+    if (rfc.startsWith('JS')) {
         console.log('admin admin');
         bandera = false;
         user = yield user_1.default.findOne({

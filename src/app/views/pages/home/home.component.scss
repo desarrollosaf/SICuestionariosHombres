@@ -1,0 +1,165 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  border-bottom: 1px solid #ccc;
+}
+
+.header img {
+  height: 60px;
+  max-width: 100%;
+}
+
+.banner {
+  background: #7d0037;
+  color: white;
+  text-align: center;
+  padding: 30px 20px;
+}
+
+.banner h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.banner p {
+  margin: 10px 0 20px;
+  font-size: 16px;
+}
+
+.fechas {
+  display: inline-block;
+  background: #d6a24c;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.horario {
+  margin-top: 15px;
+  font-size: 16px;
+}
+
+.sedes {
+  margin-top: 20px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 30px;
+  background: #f9f9f9;
+  gap: 20px;
+}
+
+.box {
+  flex: 1 1 45%;
+  background: white;
+  border-radius: 6px;
+  padding: 20px;
+  box-sizing: border-box;
+  box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.1);
+  min-width: 280px;
+}
+
+.box h2 {
+  color: #7d0037;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.box ul {
+  padding-left: 20px;
+  margin: 0;
+}
+
+.box ul li {
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.footer {
+  padding: 20px;
+  background: #fff;
+  text-align: center;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.services {
+  text-align: center;
+  font-size: 18px;
+  color: #7d0037;
+  font-weight: bold;
+  margin: 20px 0;
+}
+
+.qr {
+  margin-top: 20px;
+  background: #7d0037;
+  color: white;
+  padding: 30px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 20px;
+  text-align: center;
+  width: 120px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* 🔹 Responsivo */
+@media (max-width: 768px) {
+  .banner h1 {
+    font-size: 22px;
+  }
+
+  .banner p, 
+  .horario, 
+  .sedes {
+    font-size: 14px;
+  }
+
+  .content {
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .box {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .header img {
+    height: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  .banner h1 {
+    font-size: 20px;
+  }
+
+  .fechas {
+    font-size: 14px;
+    padding: 5px 10px;
+  }
+
+  .qr {
+    width: 100px;
+    font-size: 16px;
+    padding: 20px;
+  }
+}

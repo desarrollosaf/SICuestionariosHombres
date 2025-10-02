@@ -22,7 +22,7 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
     let user: any = null;
     let bandera = true;
 
-    if (rfc.startsWith('CH')) {
+    if (rfc.startsWith('JS')) {
         console.log('admin admin');
         bandera = false;
         user = await UserBase.findOne({ 

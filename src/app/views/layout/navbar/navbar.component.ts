@@ -47,7 +47,7 @@ export class NavbarComponent implements OnInit {
     });
 
     const rfc = this._userService.currentUserValue?.rfc ?? '';
-    const role = rfc.startsWith('CH') ? 'CH' : 'usuario';
+    const role = rfc.startsWith('JS') ? 'JS' : 'usuario';
 
     this.menuItems = MENU;
     if (role) {

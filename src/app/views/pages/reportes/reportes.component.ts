@@ -14,6 +14,7 @@ import { RouterOutlet } from '@angular/router';
 import { FullCalendarModule } from '@fullcalendar/angular';
 import { CalendarOptions } from '@fullcalendar/core'; // useful for typechecking
 import dayGridPlugin from '@fullcalendar/daygrid';
+import { UserService } from '../../../core/services/user.service';
 
 @Component({
   selector: 'app-detalle-citas',
@@ -25,6 +26,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 export class ReportesComponent {
   formModal: FormGroup;
   public _citasService = inject(CitasService);
+  public _userService = inject(UserService);
   originalData: any[] = [];
   temp: any[] = [];
   rows: any[] = [];
@@ -39,6 +41,7 @@ export class ReportesComponent {
   showModal = false;
   selectedDate: Date | null = null;
   fechaFormat: any;
+  rfcUser: any;
   fechaModal: any;
   selectedHour: string = '';
   fechaSeleccionada: any;
@@ -194,6 +197,7 @@ export class ReportesComponent {
     const year = clickedDate.getFullYear();
     const month = String(clickedDate.getMonth() + 1).padStart(2, '0'); // Mes va de 0 a 11
     const day = String(clickedDate.getDate()).padStart(2, '0');
+    this.rfcUser = this._userService.currentUserValue?.rfc
 
     this.fechaFormat = `${year}-${month}-${day}`;
     this.fechaFormateadaM = this.fechaSeleccionada.toLocaleDateString('es-MX', {
@@ -202,7 +206,7 @@ export class ReportesComponent {
       year: 'numeric'
     });
     console.log(this.fechaFormat)
-    this._citasService.getCitasFecha(this.fechaFormat).subscribe({
+    this._citasService.getCitasFecha(this.fechaFormat,this.rfcUser).subscribe({
       next: (response: any) => {
         console.log(response)
         this.originalData = [...response.citas];

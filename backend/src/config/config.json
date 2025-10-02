@@ -1,9 +1,9 @@
 {
   "development": {
-     "username": "usr_jornadasalud",
-     "password": "P1OrpsDU6JqMtRDfGmqI",
-     "database": "adminplem_jornadaSalud",
-     "host": "192.168.36.53",
+     "username": "homestead",
+     "password": "secret",
+     "database": "citas_hombres",
+     "host": "192.168.10.10",
      "dialect": "mysql"
   },
   "production": {

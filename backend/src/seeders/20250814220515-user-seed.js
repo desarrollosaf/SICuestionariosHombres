@@ -9,8 +9,10 @@ module.exports = {
     const hashedPassword = await bcrypt.hash('password', 10);
 
     const users = [
-      { id: uuidv4(), name: 'CHSAGM990220', email: 'martin.sanchez@congresoedomex.gob.mx', password: hashedPassword },
-      { id: uuidv4(), name: 'CHROOT', email: 'uigualdaddegenerosaf@congresoedomex.gob.mx', password: hashedPassword },
+      { id: uuidv4(), name: 'JSSAGM990220', email: 'martin.sanchez@congresoedomex.gob.mx', password: hashedPassword },
+      { id: uuidv4(), name: 'JSROOT', email: 'rootjs@congresoedomex.gob.mx', password: hashedPassword },
+      { id: uuidv4(), name: 'JSVOLUNTARIADO', email: 'voluntariadojs@congresoedomex.gob.mx', password: hashedPassword },
+      { id: uuidv4(), name: 'JSCONGRESO', email: 'congresojs@congresoedomex.gob.mx', password: hashedPassword },
     ];
 
     await queryInterface.bulkInsert(
