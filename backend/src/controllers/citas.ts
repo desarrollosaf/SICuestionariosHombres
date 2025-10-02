@@ -166,9 +166,9 @@ if (Validacion.f_fecha_nacimiento) {
   });
 
   // Enviar el PDF como respuesta al usuario
-  res.setHeader("Content-Type", "application/pdf");
+  /*res.setHeader("Content-Type", "application/pdf");
   res.setHeader("Content-Disposition", `attachment; filename="Cita-${body.fecha_cita}.pdf"`);
-  res.send(pdfBuffer);
+  res.send(pdfBuffer);*/
 
   return res.json({
     status: 200,

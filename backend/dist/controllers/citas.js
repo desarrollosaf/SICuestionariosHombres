@@ -146,9 +146,9 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             citaId: cita.id
         });
         // Enviar el PDF como respuesta al usuario
-        res.setHeader("Content-Type", "application/pdf");
+        /*res.setHeader("Content-Type", "application/pdf");
         res.setHeader("Content-Disposition", `attachment; filename="Cita-${body.fecha_cita}.pdf"`);
-        res.send(pdfBuffer);
+        res.send(pdfBuffer);*/
         return res.json({
             status: 200,
             msg: "Cita registrada correctamente",

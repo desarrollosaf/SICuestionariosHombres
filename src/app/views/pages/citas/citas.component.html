@@ -73,7 +73,9 @@
                                         <td class="text-center">{{ datosCita.citas[0]?.correo }}</td>
                                         <td class="text-center">{{ datosCita.citas[0]?.telefono }}</td>
                                         <td class="text-center">{{ datosCita.citas[0]?.fecha_cita }}</td>
-                                        <td class="text-center">PDF</td>
+                                        <td class="text-center"><a [href]="'https://jornadasalud.congresoedomex.gob.mx/' + datosCita.citas[0]?.path" target="_blank" rel="noopener noreferrer">
+                                            <i class="bi bi-file-earmark-pdf-fill text-danger" style="font-size: 1.5rem;"></i>
+                                        </a></td>
                                     </tr>
                                 </tbody>
                             </table>
