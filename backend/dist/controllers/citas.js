@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getcitasFecha = exports.getCita = exports.getcitasagrupadas = exports.savecita = exports.getHorariosDisponibles = void 0;
+exports.generarPDFBuffer = generarPDFBuffer;
 const citas_1 = __importDefault(require("../models/citas"));
 const horarios_citas_1 = __importDefault(require("../models/horarios_citas")); // ✅ corregido
 const sedes_1 = __importDefault(require("../models/sedes"));
@@ -141,7 +142,8 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             fecha: new Date().toLocaleDateString(),
             telefono: body.telefono,
             sede: sede2,
-            horario: horario
+            horario: horario,
+            citaId: cita.id
         });
         // Enviar el PDF como respuesta al usuario
         res.setHeader("Content-Type", "application/pdf");
@@ -351,61 +353,64 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 });
 exports.getcitasFecha = getcitasFecha;
 function generarPDFBuffer(data) {
-    return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-        const doc = new pdfkit_1.default({ size: 'LETTER', margin: 50 });
-        const chunks = [];
-        // Ruta donde se guardará el PDF
-        const pdfDir = path_1.default.join(process.cwd(), 'public/pdfs');
-        if (!fs_1.default.existsSync(pdfDir)) {
-            fs_1.default.mkdirSync(pdfDir, { recursive: true });
-        }
-        const fileName = `acuse_${data.folio}.pdf`;
-        const filePath = path_1.default.join(pdfDir, fileName);
-        const writeStream = fs_1.default.createWriteStream(filePath);
-        doc.pipe(writeStream);
-        doc.on('data', (chunk) => chunks.push(chunk));
-        doc.on('end', () => resolve(Buffer.concat(chunks)));
-        doc.on('error', reject);
-        // ✅ Imagen de fondo
-        doc.image(path_1.default.join(__dirname, '../assets/acusederegistro.png'), 0, 0, {
-            width: doc.page.width,
-            height: doc.page.height,
-        });
-        // Título centralizado
-        doc.moveDown(4);
-        doc.fontSize(18).font('Helvetica-Bold').text('CAMPANA GRATUITA DE SALUD MASCULINA', {
-            align: 'center',
-            underline: true
-        });
-        // Datos del paciente
-        doc.moveDown(2);
-        doc.fontSize(12)
-            .font('Helvetica')
-            .text(`Paciente: ${data.nombreCompleto} | ${data.sexo} | ${data.edad}`, { align: 'left' })
-            .text(`CURP: ${data.curp}`, { align: 'left' })
-            .text(`Correo electrónico: ${data.correo} | Teléfono: ${data.telefono} `, { align: 'left' })
-            .text(`Ubicación: ${data.sede}`, { align: 'left' })
-            .text(`Horario: ${data.horario}`, { align: 'left' });
-        doc.moveDown();
-        // Información adicional de la campaña
-        doc.fontSize(11).text('El Voluntariado del Poder Legislativo del Estado de México organiza la Campaña gratuita de salud masculina, que incluye chequeo médico y la prueba de Antígeno Prostático Específico (PSA).', { align: 'justify' });
-        // Detalles de la documentación
-        doc.fontSize(11).text('Para acceder a este beneficio, es indispensable presentar en el día y hora asignados la siguiente documentación:', { align: 'justify' });
-        doc.moveDown();
-        doc.fontSize(11).list([
-            'Identificación oficial: Se aceptará únicamente credencial para votar (INE) vigente o gafete oficial expedido por la Dirección de Administración y Desarrollo de Personal. Deberá presentar en original y copia. Si no se presenta alguno de estos documentos el día de la cita, no podrá realizar su examen y se le dará por perdido.',
-        ], { bulletIndent: 20 });
-        doc.moveDown();
-        // Pie de página con aviso de privacidad
-        doc.font('Helvetica-Bold')
-            .fontSize(10)
-            .text('Aviso de Privacidad', { align: 'left' });
-        doc.font('Helvetica') // volver a fuente normal
-            .fontSize(9)
-            .text('Consúltalo en:', { align: 'left' });
-        doc.font('Helvetica')
-            .fontSize(9)
-            .text('https://legislacion.legislativoedomex.gob.mx/storage/documentos/avisosprivacidad/expediente-clinico.pdf', { align: 'left' });
-        doc.end();
-    }));
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            const doc = new pdfkit_1.default({ size: "LETTER", margin: 50 });
+            const chunks = [];
+            const pdfDir = path_1.default.join(process.cwd(), "public/pdfs");
+            if (!fs_1.default.existsSync(pdfDir)) {
+                fs_1.default.mkdirSync(pdfDir, { recursive: true });
+            }
+            const fileName = `acuse_${data.folio}.pdf`;
+            const filePath = path_1.default.join(pdfDir, fileName);
+            const writeStream = fs_1.default.createWriteStream(filePath);
+            doc.pipe(writeStream);
+            doc.on("data", (chunk) => chunks.push(chunk));
+            doc.on("end", () => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    // Guardar la ruta del PDF en la tabla citas
+                    yield citas_1.default.update({ path: filePath }, // columna donde guardas la ruta
+                    { where: { id: data.citaId } });
+                    resolve(Buffer.concat(chunks));
+                }
+                catch (error) {
+                    reject(error);
+                }
+            }));
+            doc.on("error", reject);
+            // ===== CONTENIDO DEL PDF =====
+            doc.image(path_1.default.join(__dirname, "../assets/acusederegistro.png"), 0, 0, {
+                width: doc.page.width,
+                height: doc.page.height,
+            });
+            doc.moveDown(4);
+            doc.fontSize(18).font("Helvetica-Bold").text("CAMPAÑA GRATUITA DE SALUD MASCULINA", {
+                align: "center",
+                underline: true,
+            });
+            doc.moveDown(2);
+            doc.fontSize(12)
+                .font("Helvetica")
+                .text(`Paciente: ${data.nombreCompleto} | ${data.sexo} | ${data.edad}`, { align: "left" })
+                .text(`CURP: ${data.curp}`, { align: "left" })
+                .text(`Correo electrónico: ${data.correo} | Teléfono: ${data.telefono}`, { align: "left" })
+                .text(`Ubicación: ${data.sede}`, { align: "left" })
+                .text(`Horario: ${data.horario}`, { align: "left" });
+            doc.moveDown();
+            doc.fontSize(11).text("El Voluntariado del Poder Legislativo del Estado de México organiza la Campaña gratuita de salud masculina...", { align: "justify" });
+            doc.moveDown();
+            doc.fontSize(11).text("Para acceder a este beneficio, es indispensable presentar en el día y hora asignados la siguiente documentación:", { align: "justify" });
+            doc.moveDown();
+            doc.fontSize(11).list([
+                "Identificación oficial: Se aceptará únicamente credencial para votar (INE) vigente o gafete oficial expedido...",
+            ], { bulletIndent: 20 });
+            doc.moveDown();
+            doc.font("Helvetica-Bold").fontSize(10).text("Aviso de Privacidad", { align: "left" });
+            doc.font("Helvetica").fontSize(9).text("Consúltalo en:", { align: "left" });
+            doc.font("Helvetica")
+                .fontSize(9)
+                .text("https://legislacion.legislativoedomex.gob.mx/storage/documentos/avisosprivacidad/expediente-clinico.pdf", { align: "left" });
+            doc.end();
+        }));
+    });
 }
