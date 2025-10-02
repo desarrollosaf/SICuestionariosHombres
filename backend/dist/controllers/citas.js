@@ -357,7 +357,7 @@ function generarPDFBuffer(data) {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
             const doc = new pdfkit_1.default({ size: "LETTER", margin: 50 });
             const chunks = [];
-            const pdfDir = path_1.default.join(process.cwd(), "public/pdfs");
+            const pdfDir = path_1.default.join(process.cwd(), "storage/public/pdfs");
             if (!fs_1.default.existsSync(pdfDir)) {
                 fs_1.default.mkdirSync(pdfDir, { recursive: true });
             }
@@ -379,11 +379,11 @@ function generarPDFBuffer(data) {
             }));
             doc.on("error", reject);
             // ===== CONTENIDO DEL PDF =====
-            doc.image(path_1.default.join(__dirname, "../assets/acusederegistro.png"), 0, 0, {
+            doc.image(path_1.default.join(__dirname, "../assets/salud_page.jpg"), 0, 0, {
                 width: doc.page.width,
                 height: doc.page.height,
             });
-            doc.moveDown(4);
+            doc.moveDown(5);
             doc.fontSize(18).font("Helvetica-Bold").text("CAMPAÑA GRATUITA DE SALUD MASCULINA", {
                 align: "center",
                 underline: true,
@@ -397,13 +397,14 @@ function generarPDFBuffer(data) {
                 .text(`Ubicación: ${data.sede}`, { align: "left" })
                 .text(`Horario: ${data.horario}`, { align: "left" });
             doc.moveDown();
-            doc.fontSize(11).text("El Voluntariado del Poder Legislativo del Estado de México organiza la Campaña gratuita de salud masculina...", { align: "justify" });
+            doc.fontSize(11).text("El Voluntariado del Poder Legislativo del Estado de México organiza la Campaña gratuita de salud masculina, que incluye Check up médico y la prueba de Antígeno Prostático Específico (PSA).", { align: "justify" });
             doc.moveDown();
             doc.fontSize(11).text("Para acceder a este beneficio, es indispensable presentar en el día y hora asignados la siguiente documentación:", { align: "justify" });
             doc.moveDown();
             doc.fontSize(11).list([
-                "Identificación oficial: Se aceptará únicamente credencial para votar (INE) vigente o gafete oficial expedido...",
+                "Identificación oficial: Se aceptará únicamente credencial para votar (INE) vigente o gafete oficial expedido por la Dirección de Administración y Desarrollo de Personal. Deberán presentarse en original y copia.",
             ], { bulletIndent: 20 });
+            doc.fontSize(11).text("Si no se presenta alguno de estos documentos el día de la cita, no podrá realizar su examen y este se dará por perdido. Aviso de Privacidad", { align: "justify" });
             doc.moveDown();
             doc.font("Helvetica-Bold").fontSize(10).text("Aviso de Privacidad", { align: "left" });
             doc.font("Helvetica").fontSize(9).text("Consúltalo en:", { align: "left" });
