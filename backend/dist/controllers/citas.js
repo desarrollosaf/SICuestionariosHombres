@@ -94,6 +94,8 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             sede_id: body.sede_id,
             rfc: body.rfc,
             fecha_cita: body.fecha_cita,
+            correo: body.correo,
+            telefono: body.telefono,
         });
         return res.json({
             status: 200,
@@ -197,6 +199,8 @@ const getCita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 id: cita.id,
                 rfc: cita.rfc,
                 fecha_cita: cita.fecha_cita,
+                correo: cita.correo,
+                telefono: cita.telefono,
                 sede: ((_a = citaAny.Sede) === null || _a === void 0 ? void 0 : _a.sede) || "Desconocida",
                 sede_id: ((_b = citaAny.Sede) === null || _b === void 0 ? void 0 : _b.id) || null,
                 horario_id: cita.horario_id,

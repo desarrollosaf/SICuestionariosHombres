@@ -102,6 +102,8 @@ export const savecita = async (req: Request, res: Response): Promise<any> => {
       sede_id: body.sede_id,
       rfc: body.rfc,
       fecha_cita: body.fecha_cita,
+      correo: body.correo,
+      telefono: body.telefono,
     });
 
     return res.json({
@@ -212,6 +214,8 @@ export const getCita = async (req: Request, res: Response): Promise<any> => {
         id: cita.id,
         rfc: cita.rfc,
         fecha_cita: cita.fecha_cita,
+        correo: cita.correo,
+        telefono: cita.telefono,
         sede: citaAny.Sede?.sede || "Desconocida",
         sede_id: citaAny.Sede?.id || null,
         horario_id: cita.horario_id,
