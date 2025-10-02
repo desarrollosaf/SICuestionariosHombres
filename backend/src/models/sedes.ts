@@ -1,5 +1,6 @@
 import { Model, DataTypes, CreationOptional } from 'sequelize';
 import sequelize from '../database/cuestionariosConnection';
+import Cita from './citas';
 
 class Sede extends Model {
   declare id: CreationOptional<number>;
@@ -28,5 +29,5 @@ Sede.init(
     timestamps: true,
   }
 );
-
+// Sede.hasMany(Cita, { foreignKey: 'sede_id' });
 export default Sede;
