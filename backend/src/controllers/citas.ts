@@ -243,8 +243,19 @@ export const getCita = async (req: Request, res: Response): Promise<any> => {
 
 export const getcitasFecha = async (req: Request, res: Response): Promise<any> => {
   try {
-    console.log(req.params)
-    const { fecha } = req.params;
+    
+    const { fecha, rfc } = req.params;
+    const prefijo = rfc.substring(0, 3).toUpperCase();
+     let sedeFilter: any = {};
+    
+    if (prefijo === "JSV") {
+      sedeFilter = { sede_id: 2 }; 
+    } else if (prefijo === "JSC") {
+      sedeFilter = { sede_id: 1 }; 
+    } else {
+      sedeFilter = {}; 
+    }
+
     const today = new Date();
     const tomorrow = new Date();
     tomorrow.setDate(today.getDate() + 1);
@@ -252,14 +263,16 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
     console.log(fecha)
     const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
-    const citas = await Cita.findAll({
+     const citas = await Cita.findAll({
       where: {
         fecha_cita: {
-          [Op.eq]: fecha  
-        }
+          [Op.eq]: fecha
+        },
+        ...sedeFilter 
       },
-      order: [['fecha_cita', 'ASC']]
+      order: [["fecha_cita", "ASC"]]
     });
+    console.log(citas)
 
     console.log(citas);
      for (const cita of citas) {

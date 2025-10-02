@@ -7,5 +7,5 @@ router.get("/api/citas/gethorarios/:fecha", citas_1.getHorariosDisponibles);
 router.post("/api/citas/savecita/", citas_1.savecita);
 router.get("/api/citas/citasagrupadas/", citas_1.getcitasagrupadas);
 router.get("/api/citas/getcitaservidor/:id", citas_1.getCita);
-router.get("/api/citas/getcitasfecha/:fecha", citas_1.getcitasFecha);
+router.get("/api/citas/getcitasfecha/:fecha/:rfc", citas_1.getcitasFecha);
 exports.default = router;
