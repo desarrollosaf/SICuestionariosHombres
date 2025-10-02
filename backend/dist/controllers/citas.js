@@ -133,7 +133,7 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             }
         }
         const pdfBuffer = yield generarPDFBuffer({
-            folio: cita.id.toString(),
+            folio: cita.folio,
             nombreCompleto: nombreCompleto,
             sexo: sexo,
             edad: edad,
@@ -364,13 +364,14 @@ function generarPDFBuffer(data) {
             }
             const fileName = `acuse_${data.folio}.pdf`;
             const filePath = path_1.default.join(pdfDir, fileName);
+            const relativePath = path_1.default.join("storage", "public", "pdfs", fileName);
             const writeStream = fs_1.default.createWriteStream(filePath);
             doc.pipe(writeStream);
             doc.on("data", (chunk) => chunks.push(chunk));
             doc.on("end", () => __awaiter(this, void 0, void 0, function* () {
                 try {
                     // Guardar la ruta del PDF en la tabla citas
-                    yield citas_1.default.update({ path: filePath }, // columna donde guardas la ruta
+                    yield citas_1.default.update({ path: relativePath }, // columna donde guardas la ruta
                     { where: { id: data.citaId } });
                     resolve(Buffer.concat(chunks));
                 }
@@ -385,14 +386,20 @@ function generarPDFBuffer(data) {
                 height: doc.page.height,
             });
             doc.moveDown(5);
-            doc.fontSize(18).font("Helvetica-Bold").text("CAMPAÑA GRATUITA DE SALUD MASCULINA", {
+            doc
+                .fontSize(18)
+                .font("Helvetica-Bold")
+                .fillColor("#7d0037") // ✅ Aplica el color
+                .text("CAMPAÑA GRATUITA DE SALUD MASCULINA", {
                 align: "center",
-                underline: true,
-            });
+            })
+                .fillColor("black");
             doc.moveDown(2);
+            doc.font("Helvetica").fontSize(12).text(`Folio: ${data.folio}`, { align: "right" });
+            doc.font("Helvetica").fontSize(12).text(`Fecha: ${data.fecha}`, { align: "right" });
             doc.fontSize(12)
                 .font("Helvetica")
-                .text(`Paciente: ${data.nombreCompleto} | ${data.sexo} | ${data.edad}`, { align: "left" })
+                .text(`Paciente: ${data.nombreCompleto} | Masculino | ${data.edad}`, { align: "left" })
                 .text(`CURP: ${data.curp}`, { align: "left" })
                 .text(`Correo electrónico: ${data.correo} | Teléfono: ${data.telefono}`, { align: "left" })
                 .text(`Ubicación: ${data.sede}`, { align: "left" })
