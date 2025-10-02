@@ -225,21 +225,30 @@ const getCita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 exports.getCita = getCita;
 const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        console.log(req.params);
-        const { fecha } = req.params;
+        const { fecha, rfc } = req.params;
+        const prefijo = rfc.substring(0, 3).toUpperCase();
+        let sedeFilter = {};
+        if (prefijo === "JSV") {
+            sedeFilter = { sede_id: 2 };
+        }
+        else if (prefijo === "JSC") {
+            sedeFilter = { sede_id: 1 };
+        }
+        else {
+            sedeFilter = {};
+        }
         const today = new Date();
         const tomorrow = new Date();
         tomorrow.setDate(today.getDate() + 1);
         console.log(fecha);
         const formatDate = (date) => date.toISOString().split('T')[0];
         const citas = yield citas_1.default.findAll({
-            where: {
-                fecha_cita: {
+            where: Object.assign({ fecha_cita: {
                     [sequelize_1.Op.eq]: fecha
-                }
-            },
-            order: [['fecha_cita', 'ASC']]
+                } }, sedeFilter),
+            order: [["fecha_cita", "ASC"]]
         });
+        console.log(citas);
         console.log(citas);
         for (const cita of citas) {
             if (cita.rfc) {
