@@ -15,7 +15,7 @@ import sequelizefun from '../database/fun';
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
-import { generarReporteCitasPDF } from "./pdf.utils";
+// import { generarReporteCitasPDF } from "./pdf.utils";
 
 
 dp_datospersonales.initModel(sequelizefun);

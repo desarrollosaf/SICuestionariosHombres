@@ -29,7 +29,7 @@ const fun_1 = __importDefault(require("../database/fun"));
 const pdfkit_1 = __importDefault(require("pdfkit"));
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-const pdf_utils_1 = require("./pdf.utils");
+// import { generarReporteCitasPDF } from "./pdf.utils";
 dp_datospersonales_1.dp_datospersonales.initModel(fun_1.default);
 dp_fum_datos_generales_1.dp_fum_datos_generales.initModel(fun_1.default);
 const getHorariosDisponibles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -443,7 +443,7 @@ const generarPDFCitas = (req, res) => __awaiter(void 0, void 0, void 0, function
         });
         const sedeNombre = ((_b = (_a = citas[0]) === null || _a === void 0 ? void 0 : _a.Sede) === null || _b === void 0 ? void 0 : _b.sede) || "SIN SEDE";
         // Generar el PDF en memoria
-        const pdfBuffer = yield (0, pdf_utils_1.generarReporteCitasPDF)(fecha, sedeNombre, horarios, citas);
+        const pdfBuffer = yield generarReporteCitasPDF(fecha, sedeNombre, horarios, citas);
         // Retornar el PDF
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader("Content-Disposition", `attachment; filename="Reporte-${fecha}-sede${sedeId}.pdf"`);
