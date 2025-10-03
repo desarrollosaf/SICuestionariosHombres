@@ -16,6 +16,7 @@ import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
 import { generarReporteCitasPDF } from "./pdf.utils";
+import ExcelJS from "exceljs";
 
 
 dp_datospersonales.initModel(sequelizefun);
@@ -577,5 +578,118 @@ export const generarPDFCitas = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("❌ Error generando PDF:", error);
     res.status(500).json({ error: "Error generando PDF" });
+  }
+};
+
+
+export const generarExcelCitas = async (req: Request, res: Response) => {
+  try {
+    const { fecha, sedeId } = req.params;
+
+    const horarios = await HorarioCita.findAll({
+      order: [["id", "ASC"]],
+      raw: true
+    });
+
+    const citas = await Cita.findAll({
+      where: {
+        fecha_cita: { [Op.eq]: fecha },
+        sede_id: sedeId
+      },
+      include: [
+        {
+          model: Sede,
+          as: "Sede",
+          attributes: ["sede"]
+        }
+      ],
+      order: [["horario_id", "ASC"]],
+      raw: false
+    }) as (Cita & { Sede?: { sede: string }, usuario?: any })[];
+
+    const sedeNombre = citas[0]?.Sede?.sede || "SIN SEDE";
+
+    // Agregar nombre completo a cada cita
+    for (const cita of citas) {
+      if (cita.rfc) {
+        const datos = await dp_fum_datos_generales.findOne({
+          where: { f_rfc: cita.rfc },
+          attributes: [
+            [Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), "nombre_completo"]
+          ],
+          raw: true
+        });
+        if (datos) {
+          (cita as any).datos_user = datos;
+        }
+      }
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Reporte de Citas");
+
+    // Agregar título general arriba
+    const titulo = `Citas de la sede ${sedeNombre} - ${fecha}`;
+    sheet.addRow([titulo]);
+    const titleRow = sheet.getRow(1);
+    titleRow.font = { size: 14, bold: true };
+    sheet.mergeCells(`A1:D1`); // Unir las columnas A-D para el título
+    titleRow.alignment = { horizontal: "center" };
+
+    // Dejar una fila vacía
+    sheet.addRow([]);
+
+    // Encabezados
+    sheet.addRow(["Horario", "Nombre", "Correo", "Teléfono"]);
+    const headerRow = sheet.getRow(3); // Fila 3 porque hay título y fila vacía
+    headerRow.font = { bold: true };
+    headerRow.alignment = { horizontal: "center" };
+
+    // Datos
+    for (const h of horarios) {
+      const hora = `${h.horario_inicio} - ${h.horario_fin}`;
+      const citasHorario = citas.filter(c => c.horario_id === h.id);
+
+      if (citasHorario.length === 0) {
+        sheet.addRow([hora, "— Sin citas —", "", ""]);
+      } else {
+        for (const cita of citasHorario) {
+          const nombre =
+            (cita as any).datos_user?.nombre_completo || "Nombre desconocido";
+          const correo = cita.correo ?? "Sin correo";
+          const telefono = cita.telefono ?? "Sin teléfono";
+
+          sheet.addRow([hora, nombre, correo, telefono]);
+        }
+      }
+    }
+
+    // Ajustar ancho columnas automáticamente
+    sheet.columns?.forEach(column => {
+      if (column && typeof column.eachCell === "function") {
+        let maxLength = 0;
+        column.eachCell({ includeEmpty: true }, cell => {
+          const value = cell.value ? cell.value.toString() : "";
+          maxLength = Math.max(maxLength, value.length);
+        });
+        column.width = maxLength + 5;
+      }
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="Reporte-${fecha}-sede${sedeNombre}.xlsx"`
+    );
+    res.send(buffer);
+
+  } catch (error) {
+    console.error("❌ Error generando Excel:", error);
+    res.status(500).json({ error: "Error generando Excel" });
   }
 };
