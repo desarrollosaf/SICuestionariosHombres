@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generarPDFCitas = exports.getcitasFecha = exports.getCita = exports.getcitasagrupadas = exports.savecita = exports.getHorariosDisponibles = void 0;
+exports.generarExcelCitas = exports.generarPDFCitas = exports.getcitasFecha = exports.getCita = exports.getcitasagrupadas = exports.savecita = exports.getHorariosDisponibles = void 0;
 exports.generarPDFBuffer = generarPDFBuffer;
 const citas_1 = __importDefault(require("../models/citas"));
 const horarios_citas_1 = __importDefault(require("../models/horarios_citas")); // ✅ corregido
@@ -30,6 +30,7 @@ const pdfkit_1 = __importDefault(require("pdfkit"));
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const pdf_utils_1 = require("./pdf.utils");
+const exceljs_1 = __importDefault(require("exceljs"));
 dp_datospersonales_1.dp_datospersonales.initModel(fun_1.default);
 dp_fum_datos_generales_1.dp_fum_datos_generales.initModel(fun_1.default);
 const getHorariosDisponibles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -489,3 +490,96 @@ const generarPDFCitas = (req, res) => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports.generarPDFCitas = generarPDFCitas;
+const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d, _e, _f;
+    try {
+        const { fecha, sedeId } = req.params;
+        const horarios = yield horarios_citas_1.default.findAll({
+            order: [["id", "ASC"]],
+            raw: true
+        });
+        const citas = yield citas_1.default.findAll({
+            where: {
+                fecha_cita: { [sequelize_1.Op.eq]: fecha },
+                sede_id: sedeId
+            },
+            include: [
+                {
+                    model: sedes_1.default,
+                    as: "Sede",
+                    attributes: ["sede"]
+                }
+            ],
+            order: [["horario_id", "ASC"]],
+            raw: false
+        });
+        const sedeNombre = ((_b = (_a = citas[0]) === null || _a === void 0 ? void 0 : _a.Sede) === null || _b === void 0 ? void 0 : _b.sede) || "SIN SEDE";
+        // Agregar nombre completo a cada cita
+        for (const cita of citas) {
+            if (cita.rfc) {
+                const datos = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
+                    where: { f_rfc: cita.rfc },
+                    attributes: [
+                        [sequelize_2.Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), "nombre_completo"]
+                    ],
+                    raw: true
+                });
+                if (datos) {
+                    cita.datos_user = datos;
+                }
+            }
+        }
+        const workbook = new exceljs_1.default.Workbook();
+        const sheet = workbook.addWorksheet("Reporte de Citas");
+        // Agregar título general arriba
+        const titulo = `Citas de la sede ${sedeNombre} - ${fecha}`;
+        sheet.addRow([titulo]);
+        const titleRow = sheet.getRow(1);
+        titleRow.font = { size: 14, bold: true };
+        sheet.mergeCells(`A1:D1`); // Unir las columnas A-D para el título
+        titleRow.alignment = { horizontal: "center" };
+        // Dejar una fila vacía
+        sheet.addRow([]);
+        // Encabezados
+        sheet.addRow(["Horario", "Nombre", "Correo", "Teléfono"]);
+        const headerRow = sheet.getRow(3); // Fila 3 porque hay título y fila vacía
+        headerRow.font = { bold: true };
+        headerRow.alignment = { horizontal: "center" };
+        // Datos
+        for (const h of horarios) {
+            const hora = `${h.horario_inicio} - ${h.horario_fin}`;
+            const citasHorario = citas.filter(c => c.horario_id === h.id);
+            if (citasHorario.length === 0) {
+                sheet.addRow([hora, "— Sin citas —", "", ""]);
+            }
+            else {
+                for (const cita of citasHorario) {
+                    const nombre = ((_c = cita.datos_user) === null || _c === void 0 ? void 0 : _c.nombre_completo) || "Nombre desconocido";
+                    const correo = (_d = cita.correo) !== null && _d !== void 0 ? _d : "Sin correo";
+                    const telefono = (_e = cita.telefono) !== null && _e !== void 0 ? _e : "Sin teléfono";
+                    sheet.addRow([hora, nombre, correo, telefono]);
+                }
+            }
+        }
+        // Ajustar ancho columnas automáticamente
+        (_f = sheet.columns) === null || _f === void 0 ? void 0 : _f.forEach(column => {
+            if (column && typeof column.eachCell === "function") {
+                let maxLength = 0;
+                column.eachCell({ includeEmpty: true }, cell => {
+                    const value = cell.value ? cell.value.toString() : "";
+                    maxLength = Math.max(maxLength, value.length);
+                });
+                column.width = maxLength + 5;
+            }
+        });
+        const buffer = yield workbook.xlsx.writeBuffer();
+        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        res.setHeader("Content-Disposition", `attachment; filename="Reporte-${fecha}-sede${sedeNombre}.xlsx"`);
+        res.send(buffer);
+    }
+    catch (error) {
+        console.error("❌ Error generando Excel:", error);
+        res.status(500).json({ error: "Error generando Excel" });
+    }
+});
+exports.generarExcelCitas = generarExcelCitas;
