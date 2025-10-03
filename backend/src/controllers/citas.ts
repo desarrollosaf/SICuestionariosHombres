@@ -15,7 +15,7 @@ import sequelizefun from '../database/fun';
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
-// import { generarReporteCitasPDF } from "./pdf.utils";
+import { generarReporteCitasPDF } from "./pdf.utils";
 
 
 dp_datospersonales.initModel(sequelizefun);
@@ -522,18 +522,52 @@ export const generarPDFCitas = async (req: Request, res: Response) => {
     });
 
     const citas = await Cita.findAll({
-      where: { 
+      where: {
         fecha_cita: { [Op.eq]: fecha },
         sede_id: sedeId
       },
-      include: [{ model: Sede, as: "Sede", attributes: ["sede"] }],
+      include: [
+        {
+          model: Sede,
+          as: "Sede",
+          attributes: ["sede"]
+        }
+      ],
       order: [["horario_id", "ASC"]],
-    }) as (Cita & { Sede?: { sede: string } })[];
+      raw: false
+    }) as (Cita & { Sede?: { sede: string }, usuario?: any })[];
 
+    // Obtener nombre de sede (o valor por defecto)
     const sedeNombre = citas[0]?.Sede?.sede || "SIN SEDE";
 
-    // Generar el PDF en memoria
-    const pdfBuffer = await generarReporteCitasPDF(fecha, sedeNombre, horarios, citas);
+    // Obtener datos extra (nombre completo de usuario)
+    for (const cita of citas) {
+      if (cita.rfc) {
+        const datos = await dp_fum_datos_generales.findOne({
+          where: { f_rfc: cita.rfc },
+          attributes: [
+            [Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo']
+          ],
+          raw: true
+        });
+        if (datos) {
+          (cita as any).datos_user = datos; // ✅ lo agregas directamente
+        }
+      }
+    }
+    console.log(citas)
+    function formatearFecha(fechaStr: string) {
+      const [año, mes, dia] = fechaStr.split("-").map(Number);
+      const fechaObj = new Date(año, mes - 1, dia); // mes-1 porque en JS enero = 0
+      const opciones: Intl.DateTimeFormatOptions = {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      };
+      return fechaObj.toLocaleDateString("es-ES", opciones);
+    }
+    const fechap = formatearFecha(fecha);
+    const pdfBuffer = await generarReporteCitasPDF(fechap, sedeNombre, horarios, citas);
 
     // Retornar el PDF
     res.setHeader("Content-Type", "application/pdf");

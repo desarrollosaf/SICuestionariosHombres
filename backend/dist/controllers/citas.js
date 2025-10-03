@@ -29,7 +29,7 @@ const fun_1 = __importDefault(require("../database/fun"));
 const pdfkit_1 = __importDefault(require("pdfkit"));
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-// import { generarReporteCitasPDF } from "./pdf.utils";
+const pdf_utils_1 = require("./pdf.utils");
 dp_datospersonales_1.dp_datospersonales.initModel(fun_1.default);
 dp_fum_datos_generales_1.dp_fum_datos_generales.initModel(fun_1.default);
 const getHorariosDisponibles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -438,12 +438,46 @@ const generarPDFCitas = (req, res) => __awaiter(void 0, void 0, void 0, function
                 fecha_cita: { [sequelize_1.Op.eq]: fecha },
                 sede_id: sedeId
             },
-            include: [{ model: sedes_1.default, as: "Sede", attributes: ["sede"] }],
+            include: [
+                {
+                    model: sedes_1.default,
+                    as: "Sede",
+                    attributes: ["sede"]
+                }
+            ],
             order: [["horario_id", "ASC"]],
+            raw: false
         });
+        // Obtener nombre de sede (o valor por defecto)
         const sedeNombre = ((_b = (_a = citas[0]) === null || _a === void 0 ? void 0 : _a.Sede) === null || _b === void 0 ? void 0 : _b.sede) || "SIN SEDE";
-        // Generar el PDF en memoria
-        const pdfBuffer = yield generarReporteCitasPDF(fecha, sedeNombre, horarios, citas);
+        // Obtener datos extra (nombre completo de usuario)
+        for (const cita of citas) {
+            if (cita.rfc) {
+                const datos = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
+                    where: { f_rfc: cita.rfc },
+                    attributes: [
+                        [sequelize_2.Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo']
+                    ],
+                    raw: true
+                });
+                if (datos) {
+                    cita.datos_user = datos; // ✅ lo agregas directamente
+                }
+            }
+        }
+        console.log(citas);
+        function formatearFecha(fechaStr) {
+            const [año, mes, dia] = fechaStr.split("-").map(Number);
+            const fechaObj = new Date(año, mes - 1, dia); // mes-1 porque en JS enero = 0
+            const opciones = {
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+            };
+            return fechaObj.toLocaleDateString("es-ES", opciones);
+        }
+        const fechap = formatearFecha(fecha);
+        const pdfBuffer = yield (0, pdf_utils_1.generarReporteCitasPDF)(fechap, sedeNombre, horarios, citas);
         // Retornar el PDF
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader("Content-Disposition", `attachment; filename="Reporte-${fecha}-sede${sedeId}.pdf"`);
