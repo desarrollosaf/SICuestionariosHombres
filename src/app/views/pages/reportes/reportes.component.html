@@ -56,6 +56,9 @@
     <div class="modal-body w-100">
         <div class="p-2 text-white text-muted bg-light">
             <strong>Citas del dia:  {{ fechaFormateadaM }}</strong>
+            <button class="btn btn-sm btn-primary ms-3" (click)="descargarPDF(2)">Descargar PDF Voluntariado</button>
+            <button class="btn btn-sm btn-primary ms-3" (click)="descargarPDF(1)">Descargar PDF Congreso</button>
+
         </div>
         <br>
         @if (viewState === 'lista') {

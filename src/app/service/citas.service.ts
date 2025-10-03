@@ -36,6 +36,12 @@ export class CitasService {
     return this.http.get<string>(`${this.myAppUrl}${this.myAPIUrl}/getcitasfecha/${fecha}/${rfc}`)
   }
 
+   generarPDF(fecha:string, sedeID: number): Observable<Blob> {
+    return this.http.get(`${this.myAppUrl}${this.myAPIUrl}/pdf/${fecha}/${sedeID}`, {
+      responseType: 'blob',
+    });
+  }
+
     
 
 }

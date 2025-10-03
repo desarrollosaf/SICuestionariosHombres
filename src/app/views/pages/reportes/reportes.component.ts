@@ -416,4 +416,23 @@ export class ReportesComponent {
     });
   }
 
+  descargarPDF(sedeID: number) {
+  //console.log(this.fechaFormat)
+  this._citasService.generarPDF(this.fechaFormat, sedeID).subscribe(
+    (res: Blob) => {
+      const blob = new Blob([res], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'reporte-citas.pdf';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    },
+    (error) => {
+      console.error('Error al descargar el PDF', error);
+    }
+  );
+}
+
+
 }
