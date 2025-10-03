@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getcitasFecha = exports.getCita = exports.getcitasagrupadas = exports.savecita = exports.getHorariosDisponibles = void 0;
+exports.generarPDFCitas = exports.getcitasFecha = exports.getCita = exports.getcitasagrupadas = exports.savecita = exports.getHorariosDisponibles = void 0;
 exports.generarPDFBuffer = generarPDFBuffer;
 const citas_1 = __importDefault(require("../models/citas"));
 const horarios_citas_1 = __importDefault(require("../models/horarios_citas")); // ✅ corregido
@@ -29,6 +29,7 @@ const fun_1 = __importDefault(require("../database/fun"));
 const pdfkit_1 = __importDefault(require("pdfkit"));
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
+const pdf_utils_1 = require("./pdf.utils");
 dp_datospersonales_1.dp_datospersonales.initModel(fun_1.default);
 dp_fum_datos_generales_1.dp_fum_datos_generales.initModel(fun_1.default);
 const getHorariosDisponibles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -140,7 +141,7 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             edad: edad,
             correo: body.correo,
             curp: body.rfc,
-            fecha: new Date().toLocaleDateString(),
+            fecha: cita.fecha_cita,
             telefono: body.telefono,
             sede: sede2,
             horario: horario,
@@ -397,7 +398,7 @@ function generarPDFBuffer(data) {
                 .fillColor("black");
             doc.moveDown(2);
             doc.font("Helvetica").fontSize(12).text(`Folio: ${data.folio}`, { align: "right" });
-            doc.font("Helvetica").fontSize(12).text(`Fecha: ${data.fecha}`, { align: "right" });
+            doc.font("Helvetica").fontSize(12).text(`Fecha cita: ${data.fecha}`, { align: "right" });
             doc.fontSize(12)
                 .font("Helvetica")
                 .text(`Paciente: ${data.nombreCompleto} | Masculino | ${data.edad}`, { align: "left" })
@@ -424,3 +425,33 @@ function generarPDFBuffer(data) {
         }));
     });
 }
+const generarPDFCitas = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        const { fecha, sedeId } = req.params;
+        const horarios = yield horarios_citas_1.default.findAll({
+            order: [["id", "ASC"]],
+            raw: true
+        });
+        const citas = yield citas_1.default.findAll({
+            where: {
+                fecha_cita: { [sequelize_1.Op.eq]: fecha },
+                sede_id: sedeId
+            },
+            include: [{ model: sedes_1.default, as: "Sede", attributes: ["sede"] }],
+            order: [["horario_id", "ASC"]],
+        });
+        const sedeNombre = ((_b = (_a = citas[0]) === null || _a === void 0 ? void 0 : _a.Sede) === null || _b === void 0 ? void 0 : _b.sede) || "SIN SEDE";
+        // Generar el PDF en memoria
+        const pdfBuffer = yield (0, pdf_utils_1.generarReporteCitasPDF)(fecha, sedeNombre, horarios, citas);
+        // Retornar el PDF
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `attachment; filename="Reporte-${fecha}-sede${sedeId}.pdf"`);
+        res.send(pdfBuffer);
+    }
+    catch (error) {
+        console.error("❌ Error generando PDF:", error);
+        res.status(500).json({ error: "Error generando PDF" });
+    }
+});
+exports.generarPDFCitas = generarPDFCitas;

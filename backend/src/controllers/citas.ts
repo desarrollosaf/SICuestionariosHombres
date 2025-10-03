@@ -15,6 +15,7 @@ import sequelizefun from '../database/fun';
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
+import { generarReporteCitasPDF } from "./pdf.utils";
 
 
 dp_datospersonales.initModel(sequelizefun);
@@ -159,7 +160,7 @@ if (Validacion.f_fecha_nacimiento) {
     edad: edad,
     correo: body.correo,
     curp: body.rfc,
-    fecha: new Date().toLocaleDateString(),
+    fecha: cita.fecha_cita,
     telefono: body.telefono,
     sede: sede2,
     horario: horario,
@@ -464,7 +465,7 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
 
     doc.moveDown(2);
     doc.font("Helvetica").fontSize(12).text(`Folio: ${data.folio}`, { align: "right" });
-    doc.font("Helvetica").fontSize(12).text(`Fecha: ${data.fecha}`, { align: "right" });
+    doc.font("Helvetica").fontSize(12).text(`Fecha cita: ${data.fecha}`, { align: "right" });
     doc.fontSize(12)
       .font("Helvetica")
       .text(`Paciente: ${data.nombreCompleto} | Masculino | ${data.edad}`, { align: "left" })
@@ -509,3 +510,38 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
     doc.end();
   });
 }
+
+
+export const generarPDFCitas = async (req: Request, res: Response) => {
+  try {
+    const { fecha, sedeId } = req.params;
+
+    const horarios = await HorarioCita.findAll({
+      order: [["id", "ASC"]],
+      raw: true
+    });
+
+    const citas = await Cita.findAll({
+      where: { 
+        fecha_cita: { [Op.eq]: fecha },
+        sede_id: sedeId
+      },
+      include: [{ model: Sede, as: "Sede", attributes: ["sede"] }],
+      order: [["horario_id", "ASC"]],
+    }) as (Cita & { Sede?: { sede: string } })[];
+
+    const sedeNombre = citas[0]?.Sede?.sede || "SIN SEDE";
+
+    // Generar el PDF en memoria
+    const pdfBuffer = await generarReporteCitasPDF(fecha, sedeNombre, horarios, citas);
+
+    // Retornar el PDF
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="Reporte-${fecha}-sede${sedeId}.pdf"`);
+    res.send(pdfBuffer);
+
+  } catch (error) {
+    console.error("❌ Error generando PDF:", error);
+    res.status(500).json({ error: "Error generando PDF" });
+  }
+};
