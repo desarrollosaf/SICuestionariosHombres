@@ -4,6 +4,7 @@ import  User  from '../models/saf/users'
 import  UserBase  from '../models/user'
 import  UsersSafs  from '../models/saf/s_usuario'
 import jwt, { JwtPayload } from 'jsonwebtoken';
+import SUsuario from '../models/saf/s_usuario';
 import dotenv from 'dotenv';
 import { dp_fum_datos_generales } from '../models/fun/dp_fum_datos_generales'
 
@@ -22,6 +23,21 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
     let passwordValid = false;
     let user: any = null;
     let bandera = true;
+
+
+    const asesor = await SUsuario.findOne({
+      where: { N_Usuario: rfc },
+      attributes: [
+        "Puesto",
+      ],
+      raw: true
+    });
+
+    if (!asesor || (asesor.Puesto && asesor.Puesto.toUpperCase().includes("ASESOR"))) {
+        return res.status(400).json({
+            msg: `Usuario no existe con el rfc ${rfc}`
+        });
+    }
 
     if (rfc.startsWith('JS')) {
         console.log('admin admin');
