@@ -33,18 +33,6 @@ const LoginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
     let passwordValid = false;
     let user = null;
     let bandera = true;
-    const asesor = yield s_usuario_2.default.findOne({
-        where: { N_Usuario: rfc },
-        attributes: [
-            "Puesto",
-        ],
-        raw: true
-    });
-    if (!asesor || (asesor.Puesto && asesor.Puesto.toUpperCase().includes("ASESOR"))) {
-        return res.status(400).json({
-            msg: `Este rfc es de un asesor ${rfc}`
-        });
-    }
     if (rfc.startsWith('JS')) {
         console.log('admin admin');
         bandera = false;
@@ -59,6 +47,18 @@ const LoginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         passwordValid = yield bcrypt_1.default.compare(password, user.password);
     }
     else {
+        const asesor = yield s_usuario_2.default.findOne({
+            where: { N_Usuario: rfc },
+            attributes: [
+                "Puesto",
+            ],
+            raw: true
+        });
+        if (!asesor || (asesor.Puesto && asesor.Puesto.toUpperCase().includes("ASESOR"))) {
+            return res.status(400).json({
+                msg: `Este rfc es de un asesor ${rfc}`
+            });
+        }
         const Validacion = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
             where: { f_rfc: rfc },
             attributes: ["f_curp"]
