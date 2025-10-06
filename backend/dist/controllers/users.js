@@ -18,6 +18,7 @@ const users_1 = __importDefault(require("../models/saf/users"));
 const user_1 = __importDefault(require("../models/user"));
 const s_usuario_1 = __importDefault(require("../models/saf/s_usuario"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const s_usuario_2 = __importDefault(require("../models/saf/s_usuario"));
 const dp_fum_datos_generales_1 = require("../models/fun/dp_fum_datos_generales");
 const ReadUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const listUser = yield users_1.default.findAll();
@@ -32,6 +33,18 @@ const LoginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
     let passwordValid = false;
     let user = null;
     let bandera = true;
+    const asesor = yield s_usuario_2.default.findOne({
+        where: { N_Usuario: rfc },
+        attributes: [
+            "Puesto",
+        ],
+        raw: true
+    });
+    if (!asesor || (asesor.Puesto && asesor.Puesto.toUpperCase().includes("ASESOR"))) {
+        return res.status(400).json({
+            msg: `Usuario no existe con el rfc ${rfc}`
+        });
+    }
     if (rfc.startsWith('JS')) {
         console.log('admin admin');
         bandera = false;
