@@ -25,19 +25,7 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
     let bandera = true;
 
 
-    const asesor = await SUsuario.findOne({
-      where: { N_Usuario: rfc },
-      attributes: [
-        "Puesto",
-      ],
-      raw: true
-    });
-
-    if (!asesor || (asesor.Puesto && asesor.Puesto.toUpperCase().includes("ASESOR"))) {
-        return res.status(400).json({
-            msg: `Este rfc es de un asesor ${rfc}`
-        });
-    }
+    
 
     if (rfc.startsWith('JS')) {
         console.log('admin admin');
@@ -54,6 +42,21 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
        
 
     }else{
+        const asesor = await SUsuario.findOne({
+      where: { N_Usuario: rfc },
+      attributes: [
+        "Puesto",
+      ],
+      raw: true
+    });
+
+    if (!asesor || (asesor.Puesto && asesor.Puesto.toUpperCase().includes("ASESOR"))) {
+        return res.status(400).json({
+            msg: `Este rfc es de un asesor ${rfc}`
+        });
+    }
+
+
           const Validacion = await dp_fum_datos_generales.findOne({ 
       where: { f_rfc: rfc },
       attributes: ["f_curp"]
