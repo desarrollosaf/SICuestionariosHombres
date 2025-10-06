@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generarExcelCitas = exports.generarPDFCitas = exports.getcitasFecha = exports.getCita = exports.getcitasagrupadas = exports.savecita = exports.getHorariosDisponibles = void 0;
+exports.generalExcel = exports.generarExcelCitas = exports.generarPDFCitas = exports.getcitasFecha = exports.getCita = exports.getcitasagrupadas = exports.savecita = exports.getHorariosDisponibles = void 0;
 exports.generarPDFBuffer = generarPDFBuffer;
 const citas_1 = __importDefault(require("../models/citas"));
 const horarios_citas_1 = __importDefault(require("../models/horarios_citas")); // ✅ corregido
@@ -514,7 +514,6 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
             raw: false
         });
         const sedeNombre = ((_b = (_a = citas[0]) === null || _a === void 0 ? void 0 : _a.Sede) === null || _b === void 0 ? void 0 : _b.sede) || "SIN SEDE";
-        // Agregar nombre completo a cada cita
         for (const cita of citas) {
             if (cita.rfc) {
                 const datos = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
@@ -526,6 +525,19 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
                 });
                 if (datos) {
                     cita.datos_user = datos;
+                }
+                const usuario = yield s_usuario_1.default.findOne({
+                    where: { N_Usuario: cita.rfc },
+                    attributes: ["N_Usuario"],
+                    include: [
+                        { model: t_dependencia_1.default, as: "dependencia", attributes: ["nombre_completo"] },
+                        { model: t_direccion_1.default, as: "direccion", attributes: ["nombre_completo"] },
+                        { model: t_departamento_1.default, as: "departamento", attributes: ["nombre_completo"] }
+                    ],
+                    raw: true
+                });
+                if (usuario) {
+                    cita.setDataValue("dependencia", usuario);
                 }
             }
         }
@@ -541,7 +553,7 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
         // Dejar una fila vacía
         sheet.addRow([]);
         // Encabezados
-        sheet.addRow(["Horario", "Nombre", "Correo", "Teléfono"]);
+        sheet.addRow(["Horario", "Nombre", "Dependencia", "Direccion", "Departamento", "Correo", "Teléfono"]);
         const headerRow = sheet.getRow(3); // Fila 3 porque hay título y fila vacía
         headerRow.font = { bold: true };
         headerRow.alignment = { horizontal: "center" };
@@ -583,3 +595,97 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.generarExcelCitas = generarExcelCitas;
+const generalExcel = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c;
+    try {
+        const citas = yield citas_1.default.findAll({
+            include: [
+                {
+                    model: sedes_1.default,
+                    as: "Sede",
+                    attributes: ["sede"],
+                },
+            ],
+            order: [["horario_id", "ASC"]],
+            raw: false,
+        });
+        // 🔹 Enriquecer datos
+        for (const cita of citas) {
+            if (cita === null || cita === void 0 ? void 0 : cita.rfc) {
+                const datos = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
+                    where: { f_rfc: cita.rfc },
+                    attributes: [
+                        "f_curp",
+                        [sequelize_2.Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), "nombre_completo"],
+                    ],
+                    raw: true,
+                });
+                if (datos) {
+                    cita.datos_user = datos;
+                }
+                const usuario = yield s_usuario_1.default.findOne({
+                    where: { N_Usuario: cita.rfc },
+                    attributes: ["N_Usuario"],
+                    include: [
+                        { model: t_dependencia_1.default, as: "dependencia", attributes: ["nombre_completo"] },
+                        { model: t_direccion_1.default, as: "direccion", attributes: ["nombre_completo"] },
+                        { model: t_departamento_1.default, as: "departamento", attributes: ["nombre_completo"] },
+                    ],
+                });
+                if (usuario) {
+                    cita.dependencia = usuario;
+                }
+            }
+        }
+        console.log(citas);
+        // 🔹 Crear workbook y hoja
+        const workbook = new exceljs_1.default.Workbook();
+        const sheet = workbook.addWorksheet("Reporte de Citas");
+        // 🔹 Título
+        const titulo = `Reporte General`;
+        sheet.addRow([titulo]);
+        const titleRow = sheet.getRow(1);
+        titleRow.font = { size: 14, bold: true };
+        sheet.mergeCells(`A1:E1`);
+        titleRow.alignment = { horizontal: "center" };
+        sheet.addRow([]); // fila vacía
+        // 🔹 Encabezados
+        const headers = ["Curp", "Nombre", "Dependencia", "Dirección", "Departamento"];
+        sheet.addRow(headers);
+        const headerRow = sheet.getRow(3);
+        headerRow.font = { bold: true };
+        headerRow.alignment = { horizontal: "center" };
+        // 🔹 Agregar datos
+        for (const cita of citas) {
+            const datos_user = cita.datos_user || {};
+            const dep = cita.dependencia || {};
+            const curp = datos_user.f_curp || "";
+            const nombre = datos_user.nombre_completo || "";
+            const dependencia = ((_a = dep === null || dep === void 0 ? void 0 : dep.dependencia) === null || _a === void 0 ? void 0 : _a.nombre_completo) || "";
+            const direccion = ((_b = dep === null || dep === void 0 ? void 0 : dep.direccion) === null || _b === void 0 ? void 0 : _b.nombre_completo) || "";
+            const departamento = ((_c = dep === null || dep === void 0 ? void 0 : dep.departamento) === null || _c === void 0 ? void 0 : _c.nombre_completo) || "";
+            sheet.addRow([curp, nombre, dependencia, direccion, departamento]);
+        }
+        // 🔹 Ajustar ancho automático
+        sheet.columns.forEach((column) => {
+            if (column && column.eachCell) {
+                let maxLength = 10;
+                column.eachCell({ includeEmpty: true }, (cell) => {
+                    const cellValue = cell.value ? cell.value.toString() : "";
+                    maxLength = Math.max(maxLength, cellValue.length);
+                });
+                column.width = maxLength + 2;
+            }
+        });
+        // 🔹 Generar buffer y enviar
+        const buffer = yield workbook.xlsx.writeBuffer();
+        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        res.setHeader("Content-Disposition", `attachment; filename="Reporte-general.xlsx"`);
+        res.send(buffer);
+    }
+    catch (error) {
+        console.error("❌ Error generando Excel:", error);
+        res.status(500).json({ error: "Error generando Excel" });
+    }
+});
+exports.generalExcel = generalExcel;
