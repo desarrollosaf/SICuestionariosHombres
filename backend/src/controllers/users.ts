@@ -35,7 +35,7 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
 
     if (!asesor || (asesor.Puesto && asesor.Puesto.toUpperCase().includes("ASESOR"))) {
         return res.status(400).json({
-            msg: `Usuario no existe con el rfc ${rfc}`
+            msg: `Este rfc es de un asesor ${rfc}`
         });
     }
 
