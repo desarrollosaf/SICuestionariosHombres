@@ -609,7 +609,7 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
 
     const sedeNombre = citas[0]?.Sede?.sede || "SIN SEDE";
 
-    // Agregar nombre completo a cada cita
+   
     for (const cita of citas) {
       if (cita.rfc) {
         const datos = await dp_fum_datos_generales.findOne({
@@ -621,6 +621,20 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
         });
         if (datos) {
           (cita as any).datos_user = datos;
+        }
+
+         const usuario = await SUsuario.findOne({
+          where: { N_Usuario: cita.rfc },
+          attributes: ["N_Usuario"],
+          include: [
+            { model: Dependencia, as: "dependencia", attributes: ["nombre_completo"] },
+            { model: Direccion, as: "direccion", attributes: ["nombre_completo"] },
+            { model: Departamento, as: "departamento", attributes: ["nombre_completo"] }
+          ],
+          raw: true
+        });
+        if (usuario) {
+          cita.setDataValue("dependencia", usuario);
         }
       }
     }
@@ -640,7 +654,7 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
     sheet.addRow([]);
 
     // Encabezados
-    sheet.addRow(["Horario", "Nombre", "Correo", "Teléfono"]);
+    sheet.addRow(["Horario", "Nombre","Dependencia","Direccion","Departamento", "Correo", "Teléfono"]);
     const headerRow = sheet.getRow(3); // Fila 3 porque hay título y fila vacía
     headerRow.font = { bold: true };
     headerRow.alignment = { horizontal: "center" };
@@ -693,3 +707,112 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Error generando Excel" });
   }
 };
+
+
+export const generalExcel = async (req: Request, res: Response) => {
+  try {
+    const citas = await Cita.findAll({
+      include: [
+        {
+          model: Sede,
+          as: "Sede",
+          attributes: ["sede"],
+        },
+      ],
+      order: [["horario_id", "ASC"]],
+      raw: false,
+    }) as (Cita & { Sede?: { sede: string }; datos_user?: any; dependencia?: any })[];
+
+    // 🔹 Enriquecer datos
+    for (const cita of citas) {
+      if (cita?.rfc) {
+        const datos = await dp_fum_datos_generales.findOne({
+          where: { f_rfc: cita.rfc },
+          attributes: [
+            "f_curp",
+            [Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), "nombre_completo"],
+          ],
+          raw: true,
+        });
+
+        if (datos) {
+          (cita as any).datos_user = datos;
+        }
+
+        const usuario = await SUsuario.findOne({
+          where: { N_Usuario: cita.rfc },
+          attributes: ["N_Usuario"],
+          include: [
+            { model: Dependencia, as: "dependencia", attributes: ["nombre_completo"] },
+            { model: Direccion, as: "direccion", attributes: ["nombre_completo"] },
+            { model: Departamento, as: "departamento", attributes: ["nombre_completo"] },
+          ],
+        });
+
+        if (usuario) {
+          (cita as any).dependencia = usuario;
+        }
+      }
+    }
+    console.log(citas)
+    // 🔹 Crear workbook y hoja
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Reporte de Citas");
+
+    // 🔹 Título
+    const titulo = `Reporte General`;
+    sheet.addRow([titulo]);
+    const titleRow = sheet.getRow(1);
+    titleRow.font = { size: 14, bold: true };
+    sheet.mergeCells(`A1:E1`);
+    titleRow.alignment = { horizontal: "center" };
+
+    sheet.addRow([]); // fila vacía
+
+    // 🔹 Encabezados
+    const headers = ["Curp", "Nombre", "Dependencia", "Dirección", "Departamento"];
+    sheet.addRow(headers);
+    const headerRow = sheet.getRow(3);
+    headerRow.font = { bold: true };
+    headerRow.alignment = { horizontal: "center" };
+
+    // 🔹 Agregar datos
+    for (const cita of citas) {
+      const datos_user = (cita as any).datos_user || {};
+      const dep = (cita as any).dependencia || {};
+
+      const curp = datos_user.f_curp || "";
+      const nombre = datos_user.nombre_completo || "";
+      const dependencia = dep?.dependencia?.nombre_completo || "";
+      const direccion = dep?.direccion?.nombre_completo || "";
+      const departamento = dep?.departamento?.nombre_completo || "";
+
+      sheet.addRow([curp, nombre, dependencia, direccion, departamento]);
+    }
+
+    // 🔹 Ajustar ancho automático
+    sheet.columns.forEach((column) => {
+      if (column && column.eachCell) {
+        let maxLength = 10;
+        column.eachCell({ includeEmpty: true }, (cell) => {
+          const cellValue = cell.value ? cell.value.toString() : "";
+          maxLength = Math.max(maxLength, cellValue.length);
+        });
+        column.width = maxLength + 2;
+      }
+    });
+
+    // 🔹 Generar buffer y enviar
+    const buffer = await workbook.xlsx.writeBuffer();
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader("Content-Disposition", `attachment; filename="Reporte-general.xlsx"`);
+    res.send(buffer);
+  } catch (error) {
+    console.error("❌ Error generando Excel:", error);
+    res.status(500).json({ error: "Error generando Excel" });
+  }
+};
+
