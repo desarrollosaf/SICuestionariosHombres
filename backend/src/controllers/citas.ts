@@ -77,16 +77,16 @@ export const savecita = async (req: Request, res: Response): Promise<any> => {
     const limite = 3;
 
     
-    // const citaExistente = await Cita.findOne({
-    //   where: { rfc: body.rfc }
-    // });
+    const citaExistente = await Cita.findOne({
+      where: { rfc: body.rfc }
+    });
 
-    // if (citaExistente) {
-    //   return res.status(400).json({
-    //     status: 400,
-    //     msg: "Ya existe una cita registrada con ese RFC"
-    //   });
-    // }
+    if (citaExistente) {
+      return res.status(400).json({
+        status: 400,
+        msg: "Ya existe una cita registrada con ese RFC"
+      });
+    }
 
     const cantidadCitas = await Cita.count({
   where: {

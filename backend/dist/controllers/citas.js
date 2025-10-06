@@ -74,15 +74,15 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { body } = req;
         const limite = 3;
-        // const citaExistente = await Cita.findOne({
-        //   where: { rfc: body.rfc }
-        // });
-        // if (citaExistente) {
-        //   return res.status(400).json({
-        //     status: 400,
-        //     msg: "Ya existe una cita registrada con ese RFC"
-        //   });
-        // }
+        const citaExistente = yield citas_1.default.findOne({
+            where: { rfc: body.rfc }
+        });
+        if (citaExistente) {
+            return res.status(400).json({
+                status: 400,
+                msg: "Ya existe una cita registrada con ese RFC"
+            });
+        }
         const cantidadCitas = yield citas_1.default.count({
             where: {
                 horario_id: body.horario_id,
