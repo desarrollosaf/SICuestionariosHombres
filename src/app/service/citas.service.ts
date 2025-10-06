@@ -42,6 +42,12 @@ export class CitasService {
     });
   }
 
+  generarEXCEL(fecha:string, sedeID: number): Observable<Blob> {
+    return this.http.get(`${this.myAppUrl}${this.myAPIUrl}/exel/${fecha}/${sedeID}`, {
+      responseType: 'blob',
+    });
+  }
+
     
 
 }

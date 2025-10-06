@@ -77,6 +77,9 @@ export class ReportesComponent {
   tatendidos: any;
   visibleHorarios: { [key: string]: boolean } = {};
 
+  descargandoPDF: number | null = null;
+  descargandoExcel: number | null = null;
+
   @ViewChild('table') table: DatatableComponent;
   @ViewChild('fullcalendar') calendarComponent: FullCalendarComponent;
   @ViewChild('xlModal', { static: true }) xlModal!: TemplateRef<any>;
@@ -417,7 +420,8 @@ export class ReportesComponent {
   }
 
   descargarPDF(sedeID: number) {
-  //console.log(this.fechaFormat)
+  this.descargandoPDF = sedeID; // Inicia spinner
+
   this._citasService.generarPDF(this.fechaFormat, sedeID).subscribe(
     (res: Blob) => {
       const blob = new Blob([res], { type: 'application/pdf' });
@@ -427,12 +431,38 @@ export class ReportesComponent {
       a.download = 'reporte-citas.pdf';
       a.click();
       window.URL.revokeObjectURL(url);
+      this.descargandoPDF = null; // Finaliza spinner
     },
     (error) => {
       console.error('Error al descargar el PDF', error);
+      this.descargandoPDF = null; // Asegura que se reinicie el estado
     }
   );
 }
+
+
+
+descargarExcel(sedeID: number) {
+  this.descargandoExcel = sedeID; // Inicia spinner
+
+  this._citasService.generarEXCEL(this.fechaFormat, sedeID).subscribe(
+    (res: Blob) => {
+      const blob = new Blob([res], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'reporte-citas.xlsx';
+      a.click();
+      window.URL.revokeObjectURL(url);
+      this.descargandoExcel = null; 
+    },
+    (error) => {
+      console.error('Error al descargar el Excel', error);
+      this.descargandoExcel = null; 
+    }
+  );
+}
+
 
 
 }
