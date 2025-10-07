@@ -7,6 +7,7 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import SUsuario from '../models/saf/s_usuario';
 import dotenv from 'dotenv';
 import { dp_fum_datos_generales } from '../models/fun/dp_fum_datos_generales'
+import Cita from '../models/citas'
 
 export const ReadUser = async (req: Request, res: Response): Promise<any> => {
     const listUser = await User.findAll();
@@ -42,6 +43,15 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
        
 
     }else{
+        const totalCitas = await Cita.count();
+        if (totalCitas >= 400) {
+            return res.status(400).json({
+                msg: "Ya no hay lugares disponibles. Solo hay espacio para 400 citas."
+            });
+        }
+
+
+
         const asesor = await SUsuario.findOne({
       where: { N_Usuario: rfc },
       attributes: [
@@ -57,7 +67,7 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
     }
 
 
-          const Validacion = await dp_fum_datos_generales.findOne({ 
+    const Validacion = await dp_fum_datos_generales.findOne({ 
       where: { f_rfc: rfc },
       attributes: ["f_curp"]
     });
