@@ -43,8 +43,8 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
        
 
     }else{
-        const citasv = await Cita.findAll();
-        if (citasv.length >= 400) {
+        const totalCitas = await Cita.count();
+        if (totalCitas >= 400) {
             return res.status(400).json({
                 msg: "Ya no hay lugares disponibles. Solo hay espacio para 400 citas."
             });

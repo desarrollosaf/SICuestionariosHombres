@@ -48,8 +48,8 @@ const LoginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         passwordValid = yield bcrypt_1.default.compare(password, user.password);
     }
     else {
-        const citasv = yield citas_1.default.findAll();
-        if (citasv.length >= 400) {
+        const totalCitas = yield citas_1.default.count();
+        if (totalCitas >= 400) {
             return res.status(400).json({
                 msg: "Ya no hay lugares disponibles. Solo hay espacio para 400 citas."
             });
