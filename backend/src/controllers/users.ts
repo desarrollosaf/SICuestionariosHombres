@@ -50,7 +50,7 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
       raw: true
     });
 
-    if (!asesor || (asesor.Puesto && asesor.Puesto.toUpperCase().includes("ASESOR"))) {
+    if (!asesor ||(asesor.id_Dependencia === 1 && asesor.Puesto &&asesor.Puesto.toUpperCase().includes("ASESOR"))) {
         return res.status(400).json({
             msg: `Este rfc es de un asesor ${rfc}`
         });

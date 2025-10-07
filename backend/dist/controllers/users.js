@@ -54,7 +54,7 @@ const LoginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
             ],
             raw: true
         });
-        if (!asesor || (asesor.Puesto && asesor.Puesto.toUpperCase().includes("ASESOR"))) {
+        if (!asesor || (asesor.id_Dependencia === 1 && asesor.Puesto && asesor.Puesto.toUpperCase().includes("ASESOR"))) {
             return res.status(400).json({
                 msg: `Este rfc es de un asesor ${rfc}`
             });
