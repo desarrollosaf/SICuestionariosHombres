@@ -131,7 +131,7 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
         const citaUser = await Cita.findOne({
         where: { rfc: rfc }
         });
-        if (totalCitas >= 400) {
+        if (totalCitas >= 500) {
             if(!citaUser){
                 return res.status(416).json({
                                 msg: "Ya no hay lugares disponibles. Solo hay espacio para 400 citas."

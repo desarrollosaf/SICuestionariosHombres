@@ -111,7 +111,7 @@ const LoginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
     const citaUser = yield citas_1.default.findOne({
         where: { rfc: rfc }
     });
-    if (totalCitas >= 400) {
+    if (totalCitas >= 500) {
         if (!citaUser) {
             return res.status(416).json({
                 msg: "Ya no hay lugares disponibles. Solo hay espacio para 400 citas."
