@@ -125,13 +125,13 @@ export class CitasComponent {
     dayMaxEvents: true,
 
     validRange: {
-      start: '2025-10-08',
+      start: '2025-10-09',
       end: '2025-10-11' 
     },
 
     dayCellDidMount: (info) => {
       const dateStr = info.date.toISOString().split('T')[0];
-      if (dateStr !== '2025-10-08' && dateStr !== '2025-10-09' && dateStr !== '2025-10-10') {
+      if (dateStr !== '2025-10-09' && dateStr !== '2025-10-10') {
         info.el.style.backgroundColor = '#f8f9fa';
         info.el.style.pointerEvents = 'none';
         info.el.style.opacity = '0.3';
