@@ -48,12 +48,6 @@ const LoginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         passwordValid = yield bcrypt_1.default.compare(password, user.password);
     }
     else {
-        const totalCitas = yield citas_1.default.count();
-        if (totalCitas >= 400) {
-            return res.status(416).json({
-                msg: "Ya no hay lugares disponibles. Solo hay espacio para 400 citas."
-            });
-        }
         const asesor = yield s_usuario_2.default.findOne({
             where: { N_Usuario: rfc },
             attributes: [
@@ -112,6 +106,17 @@ const LoginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         return res.status(402).json({
             msg: `Password Incorrecto => ${password}`
         });
+    }
+    const totalCitas = yield citas_1.default.count();
+    const citaUser = yield citas_1.default.findOne({
+        where: { rfc: rfc }
+    });
+    if (totalCitas >= 400) {
+        if (!citaUser) {
+            return res.status(416).json({
+                msg: "Ya no hay lugares disponibles. Solo hay espacio para 400 citas."
+            });
+        }
     }
     const accessToken = jsonwebtoken_1.default.sign({ rfc: rfc }, process.env.SECRET_KEY || 'TSE-Poder-legislativo', { expiresIn: '2h' });
     res.cookie('accessToken', accessToken, {
