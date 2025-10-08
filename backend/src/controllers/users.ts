@@ -43,12 +43,7 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
        
 
     }else{
-        const totalCitas = await Cita.count();
-        if (totalCitas >= 400) {
-            return res.status(416).json({
-                msg: "Ya no hay lugares disponibles. Solo hay espacio para 400 citas."
-            });
-        }
+        
 
 
 
@@ -132,12 +127,25 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
             msg: `Password Incorrecto => ${password}`
         })
     }
+    const totalCitas = await Cita.count();
+        const citaUser = await Cita.findOne({
+        where: { rfc: rfc }
+        });
+        if (totalCitas >= 400) {
+            if(!citaUser){
+                return res.status(416).json({
+                                msg: "Ya no hay lugares disponibles. Solo hay espacio para 400 citas."
+                            });
+            }
+            
+        }
 
     const accessToken = jwt.sign(
         { rfc: rfc },
         process.env.SECRET_KEY || 'TSE-Poder-legislativo',
         { expiresIn: '2h' }
     );
+
 
     res.cookie('accessToken', accessToken, {
         httpOnly: true,
