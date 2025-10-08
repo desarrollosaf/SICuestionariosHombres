@@ -68,7 +68,15 @@ export class LoginComponent implements OnInit {
         }
       },
       error: (e: HttpErrorResponse) => {
-        if (e.status === 400) {
+        if (e.status === 416) {
+          Swal.fire({
+            position: "center",
+            icon: "error",
+            title: "Ya no hay lugares disponibles.",
+            showConfirmButton: false,
+            timer: 3000
+          });
+        } else if (e.status === 400) {
           Swal.fire({
             position: "center",
             icon: "error",
@@ -76,7 +84,7 @@ export class LoginComponent implements OnInit {
             showConfirmButton: false,
             timer: 3000
           });
-        } else if (e.status === 402) {
+        }else if (e.status === 402) {
           Swal.fire({
             position: "center",
             icon: "error",
