@@ -208,9 +208,16 @@
                     <button
                     class="btn btn-primary mt-3"
                     (click)="guardarSeleccion()"
-                    [disabled]="!horaSeleccionada2 || !sedeSeleccionada || !correoUsuario || !telefonoUsuario"
+                    [disabled]="!horaSeleccionada2 || !sedeSeleccionada || !correoUsuario || !telefonoUsuario || enviandoRegistro === 1"
                     >
-                    Guardar selección
+                    <ng-container *ngIf="enviandoRegistro === 1; else iconoGuardar">
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                        Registrando
+                    </ng-container>
+                    <ng-template #iconoGuardar>
+                       Guardar selección
+                    </ng-template>
+                    
                     </button>
 
                 

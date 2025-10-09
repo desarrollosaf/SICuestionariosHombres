@@ -63,6 +63,8 @@ export class CitasComponent {
   correoConfirmado: string = '';
   telefonoUsuario: string = '';
   telefonoConfirmado: string = '';
+  enviandoRegistro: number | null = null;
+
 
   public _citasService = inject(CitasService);
 
@@ -79,7 +81,6 @@ export class CitasComponent {
     this.currentUser = this._userService.currentUserValue;
      this._citasService.getcitaRFC(this.currentUser.rfc).subscribe({
       next: (response: any) => {
-         console.log(response)
          this.datosCita = response
          if(response.citas.length > 0){
             this.mostrarCalendario = true;
@@ -110,6 +111,7 @@ export class CitasComponent {
     plugins: [dayGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
     locale: 'es',
+    initialDate: '2025-10-10',
     dateClick: this.onDateClick.bind(this),
     buttonText: {
       today: 'Hoy',
@@ -125,13 +127,13 @@ export class CitasComponent {
     dayMaxEvents: true,
 
     validRange: {
-      start: '2025-10-09',
+      start: '2025-10-10',
       end: '2025-10-11' 
     },
 
     dayCellDidMount: (info) => {
       const dateStr = info.date.toISOString().split('T')[0];
-      if (dateStr !== '2025-10-09' && dateStr !== '2025-10-10') {
+      if (dateStr !== '2025-10-10') {
         info.el.style.backgroundColor = '#f8f9fa';
         info.el.style.pointerEvents = 'none';
         info.el.style.opacity = '0.3';
@@ -140,7 +142,6 @@ export class CitasComponent {
   };
 
   onDateClick(arg: DateClickArg): void {
-    console.log('Día clicado:', arg.dateStr); 
     this.selectedDate = arg.date;
     this.fechaCitaEnvio =  arg.dateStr;
 
@@ -149,8 +150,7 @@ export class CitasComponent {
       month: 'long',
       year: 'numeric'
     });
-    console.log(this.fechaFormateadaM)
-
+ 
     this._citasService.getCitas(this.fechaCitaEnvio).subscribe({
       next: (response: any) => {
          console.log()
@@ -233,11 +233,6 @@ export class CitasComponent {
       return;
     }
 
-    // Aquí ya tienes todos los datos capturados
-    console.log('Horario ID:', this.horaSeleccionada2);
-    console.log('Sede ID:', this.sedeSeleccionada);
-    console.log('Correo:', this.correoUsuario);
-    console.log('Teléfono:', this.telefonoUsuario);
 
     const datos = {
       fecha_cita: this.fechaCitaEnvio,
@@ -247,10 +242,12 @@ export class CitasComponent {
       correo: this.correoUsuario,
       telefono: this.telefonoUsuario
     };
-    console.log(datos)
+ 
+    this.enviandoRegistro = 1;
 
     this._citasService.saveCita(datos).subscribe({
       next: (response: any) => {
+         this.enviandoRegistro = null;
          if (response.status == 200) {
           Swal.fire({
             position: 'center',
@@ -262,7 +259,6 @@ export class CitasComponent {
           });
           this._citasService.getcitaRFC(this.currentUser.rfc).subscribe({
             next: (response: any) => {
-              console.log(response)
               this.datosCita = response
               if(response.citas.length > 0){
                   this.mostrarCalendario = true;
@@ -293,6 +289,7 @@ export class CitasComponent {
         
       },
       error: (e: HttpErrorResponse) => {
+        this.enviandoRegistro = null;
         if (e.status == 400) {
           Swal.fire({
             position: 'center',
